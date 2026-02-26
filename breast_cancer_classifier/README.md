@@ -1,6 +1,6 @@
 # Breast Cancer Wisconsin Diagnostic — ML Classifier
 
-**[Bootcamp Name] | [Cohort] | [Team Name]**
+**DSI Course | Cohort 8**
 A machine learning classifier to assist radiologists in distinguishing malignant from benign breast masses using cell nucleus morphology features.
 
 ---
@@ -85,13 +85,11 @@ breast_cancer_classifier/
 
 ## Team
 
-| Name | Contribution |
-|---|---|
-| TBD | EDA & Data Cleaning |
-| TBD | Preprocessing |
-| TBD | Logistic Regression (Baseline) |
-| TBD | Random Forest & Hyperparameter Tuning |
-| TBD | SVM & Evaluation |
+| Name | GitHub | Contribution |
+|---|---|---|
+| Marie Perry | [@mvrieperry](https://github.com/mvrieperry) | TBD |
+| Sarah Creighton | [@sarahcreighton](https://github.com/sarahcreighton) | TBD |
+| Rajesh Detroja | [@Rajesh-Detroja](https://github.com/Rajesh-Detroja) | TBD |
 
 ---
 
