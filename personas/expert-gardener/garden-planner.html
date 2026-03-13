@@ -417,9 +417,11 @@
             <option>🫛 Green Beans</option>
             <option>🧅 Onions</option>
             <option>🥦 Broccoli</option>
+            <option>🌱 Radishes</option>
           </optgroup>
           <optgroup label="Herbs">
             <option>🌿 Basil</option>
+            <option>🌿 Chives</option>
             <option>🌿 Parsley</option>
             <option>🌿 Cilantro</option>
             <option>🌿 Thyme</option>
@@ -427,6 +429,11 @@
             <option>🌿 Mint</option>
             <option>🌿 Rosemary</option>
             <option>🌿 Dill</option>
+          </optgroup>
+          <optgroup label="Flowers">
+            <option>🌼 Marigolds</option>
+            <option>🌸 Nasturtiums</option>
+            <option>🌻 Sunflowers</option>
           </optgroup>
           <optgroup label="Fruit">
             <option>🍓 Strawberries</option>
@@ -934,8 +941,8 @@ function printPlan() {
 // ─── Plant Data ───────────────────────────────────────────────────────────────
 const PLANT_DATA = {
   '🍅 Tomatoes':     { emoji:'🍅', sqft:4,    spacing:24, depthIn:12, sun:'Full',      water:'High',   trellis:false, notes:'Stake or cage. Deep roots — 12″+ soil.',         companions:['🌿 Basil','🧅 Onions'],     avoid:['🥦 Broccoli'] },
-  '🌶️ Hot Peppers': { emoji:'🌶️', sqft:1,    spacing:12, depthIn:8,  sun:'Full',      water:'Medium', trellis:false, notes:'Loves heat. Cage to support heavy fruits.',        companions:['🌿 Basil','🧅 Onions'],     avoid:[] },
-  '🥒 Cucumbers':   { emoji:'🥒', sqft:2,    spacing:12, depthIn:8,  sun:'Full',      water:'High',   trellis:true,  notes:'Trellis required. Keep soil evenly moist.',        companions:['🌿 Dill','🧅 Onions'],     avoid:['🌿 Rosemary'] },
+  '🌶️ Hot Peppers': { emoji:'🌶️', sqft:1,    spacing:18, depthIn:8,  sun:'Full',      water:'Medium', trellis:false, notes:'Loves heat. Cage to support heavy fruits.',        companions:['🌿 Basil','🌿 Chives','🌼 Marigolds','🌿 Oregano','🥕 Carrots'], avoid:['🥦 Broccoli','🫛 Green Beans'] },
+  '🥒 Cucumbers':   { emoji:'🥒', sqft:2,    spacing:12, depthIn:8,  sun:'Full',      water:'High',   trellis:true,  notes:'Trellis required. Keep soil evenly moist.',        companions:['🌿 Dill','🧅 Onions','🌼 Marigolds','🌸 Nasturtiums','🌻 Sunflowers','🌱 Radishes'], avoid:['🌿 Rosemary','🌿 Sage'] },
   '🥕 Carrots':     { emoji:'🥕', sqft:1,    spacing:3,  depthIn:12, sun:'Full',      water:'Medium', trellis:false, notes:'Needs 12″+ loose soil. Thin seedlings to 3″.',     companions:['🌿 Rosemary','🧅 Onions'], avoid:['🥦 Broccoli'] },
   '🎃 Squash':      { emoji:'🎃', sqft:9,    spacing:36, depthIn:8,  sun:'Full',      water:'High',   trellis:false, notes:'Sprawling — place at bed edge to drape over.',     companions:['🌿 Dill'],                 avoid:[] },
   '🥬 Lettuce':     { emoji:'🥬', sqft:0.25, spacing:6,  depthIn:6,  sun:'Full/Part', water:'Medium', trellis:false, notes:'4 per sq ft. Harvest outer leaves first.',         companions:['🥕 Carrots','🌿 Mint'],    avoid:[] },
@@ -950,7 +957,12 @@ const PLANT_DATA = {
   '🌿 Oregano':     { emoji:'🌿', sqft:1,    spacing:12, depthIn:6,  sun:'Full',      water:'Low',    trellis:false, notes:'Spreads aggressively. Consider a sunken pot.',     companions:['🌶️ Hot Peppers'],          avoid:[] },
   '🌿 Mint':        { emoji:'🌿', sqft:1,    spacing:12, depthIn:6,  sun:'Full/Part', water:'Medium', trellis:false, notes:'Very invasive — sink a buried pot into the bed.',   companions:['🥬 Lettuce'],              avoid:[] },
   '🌿 Rosemary':    { emoji:'🌿', sqft:4,    spacing:24, depthIn:8,  sun:'Full',      water:'Low',    trellis:false, notes:'Perennial. Great corner or border plant.',          companions:['🥕 Carrots'],             avoid:['🥒 Cucumbers'] },
+  '🌿 Chives':      { emoji:'🌿', sqft:0.25, spacing:6,  depthIn:6,  sun:'Full',      water:'Low',    trellis:false, notes:'Repels aphids & spider mites. Divide clumps every 3 years.', companions:['🌶️ Hot Peppers','🍅 Tomatoes','🥕 Carrots'], avoid:[] },
   '🌿 Dill':        { emoji:'🌿', sqft:1,    spacing:6,  depthIn:8,  sun:'Full',      water:'Low',    trellis:false, notes:"Tall — plant at north end so it doesn't shade.",    companions:['🥒 Cucumbers','🎃 Squash'],avoid:['🌿 Basil'] },
+  '🌼 Marigolds':   { emoji:'🌼', sqft:0.25, spacing:6,  depthIn:6,  sun:'Full',      water:'Low',    trellis:false, notes:'Plant at bed corners/edges. Deters nematodes, aphids & whiteflies.', companions:['🌶️ Hot Peppers','🍅 Tomatoes','🥕 Carrots','🥒 Cucumbers'], avoid:[] },
+  '🌸 Nasturtiums': { emoji:'🌸', sqft:1,    spacing:12, depthIn:6,  sun:'Full',      water:'Low',    trellis:false, notes:'Trap crop — aphids prefer them over cucumbers. Flowers & leaves are edible.', companions:['🥒 Cucumbers','🎃 Squash','🍅 Tomatoes'], avoid:[] },
+  '🌻 Sunflowers':  { emoji:'🌻', sqft:1,    spacing:12, depthIn:8,  sun:'Full',      water:'Low',    trellis:false, notes:'Living trellis for cucumbers. Plant on north side to avoid shading other crops.', companions:['🥒 Cucumbers'], avoid:[] },
+  '🌱 Radishes':    { emoji:'🌱', sqft:0.11, spacing:3,  depthIn:6,  sun:'Full',      water:'Medium', trellis:false, notes:'Fast (25 days). Plant at base of cucumbers to deter beetles. Pull before they crowd.', companions:['🥒 Cucumbers','🥕 Carrots','🌸 Nasturtiums'], avoid:['🥦 Broccoli'] },
   '🍓 Strawberries':{ emoji:'🍓', sqft:1,    spacing:12, depthIn:6,  sun:'Full',      water:'Medium', trellis:false, notes:'Send runners yearly. Refresh plants every 3 years.',companions:['🌿 Thyme'],               avoid:['🥦 Broccoli'] },
   '🍈 Melon':       { emoji:'🍈', sqft:9,    spacing:36, depthIn:8,  sun:'Full',      water:'High',   trellis:false, notes:'Needs full sun and a long warm season.',            companions:['🌿 Dill'],                avoid:[] },
 };
@@ -1427,6 +1439,36 @@ function generateShoppingHTML() {
           <td class="cost"><strong>$${lumberCost}</strong></td>
         </tr>
       </table>
+
+      <details style="margin-top:14px">
+        <summary style="cursor:pointer;font-size:13px;font-weight:600;color:#2d6a30;user-select:none;padding:6px 0">
+          🛒 Store shopping list (totals by board size)
+        </summary>
+        <table class="materials-table" style="margin-top:8px">
+          <tr><th>Board</th><th>Qty to buy</th><th class="cost">Unit cost</th><th class="cost">Subtotal</th></tr>
+          ${(() => {
+            const tally = {};
+            bins.forEach(b => {
+              const key = `${b.boardSize}×${b.boardLen}`;
+              if (!tally[key]) tally[key] = { count: 0, cost: b.cost };
+              tally[key].count++;
+            });
+            return Object.entries(tally)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([key, { count, cost }]) => `
+              <tr>
+                <td><strong>${key}</strong></td>
+                <td>${count}</td>
+                <td class="cost">$${cost}</td>
+                <td class="cost"><strong>$${count * cost}</strong></td>
+              </tr>`).join('');
+          })()}
+          <tr class="total-row">
+            <td colspan="3"><strong>Lumber total</strong></td>
+            <td class="cost"><strong>$${lumberCost}</strong></td>
+          </tr>
+        </table>
+      </details>
     </div>
   </div>
 
