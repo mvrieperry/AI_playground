@@ -170,6 +170,114 @@
     .legend { display: flex; flex-direction: column; gap: 5px; }
     .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; }
     .legend-swatch { width: 16px; height: 12px; border-radius: 2px; border: 1px solid rgba(0,0,0,0.15); }
+
+    /* ── Report Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.45);
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 32px 16px; overflow-y: auto;
+    }
+    .modal-card {
+      background: #fff; border-radius: 10px;
+      width: 100%; max-width: 860px;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.25);
+      display: flex; flex-direction: column;
+      max-height: calc(100vh - 64px);
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px; border-bottom: 1px solid #e0ece0;
+      flex-shrink: 0;
+    }
+    .modal-tabs { display: flex; gap: 6px; }
+    .tab-btn {
+      padding: 6px 14px; border-radius: 5px; font-size: 13px; font-weight: 600;
+      border: 1.5px solid #c8dcc8; background: #f4fbf4; color: #4a6b4b; cursor: pointer;
+    }
+    .tab-btn.active { background: #2d6a30; color: #fff; border-color: #2d6a30; }
+    .modal-body { overflow-y: auto; padding: 20px 24px; flex: 1; }
+
+    /* Report sections */
+    .report-bed {
+      border: 1px solid #d4e4d4; border-radius: 8px;
+      margin-bottom: 20px; overflow: hidden;
+    }
+    .report-bed-header {
+      background: #2d6a30; color: #fff;
+      padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .report-bed-header h3 { font-size: 14px; font-weight: 700; }
+    .report-bed-header span { font-size: 12px; opacity: 0.85; }
+    .report-bed-body { padding: 14px 16px; }
+
+    .report-section { margin-bottom: 14px; }
+    .report-section h4 {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: #6b8c6c; margin-bottom: 8px;
+    }
+
+    .materials-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .materials-table th { background: #f0f8f0; text-align: left; padding: 5px 8px; font-size: 11px; color: #4a6b4b; border-bottom: 1px solid #d4e4d4; }
+    .materials-table td { padding: 5px 8px; border-bottom: 1px solid #eef6ee; }
+    .materials-table tr:last-child td { border-bottom: none; }
+    .materials-table .cost { text-align: right; font-weight: 600; color: #2d6a30; }
+    .materials-table .soil-row td { color: #888; font-style: italic; }
+    .total-row td { font-weight: 700; background: #f0f8f0; }
+
+    .cut-list { font-size: 12px; line-height: 1.8; }
+    .cut-list li { margin-bottom: 2px; }
+
+    .steps-list { font-size: 12px; line-height: 1.7; counter-reset: step; list-style: none; }
+    .steps-list li { counter-increment: step; padding-left: 24px; position: relative; margin-bottom: 4px; }
+    .steps-list li::before {
+      content: counter(step);
+      position: absolute; left: 0;
+      background: #2d6a30; color: #fff;
+      width: 16px; height: 16px; border-radius: 50%;
+      font-size: 9px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      top: 2px;
+    }
+
+    .plant-section { margin-bottom: 14px; }
+    .plant-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      border: 1px solid #e8f0e8; border-radius: 6px;
+      padding: 10px 12px; margin-bottom: 8px; background: #fafdf8;
+    }
+    .plant-emoji { font-size: 24px; line-height: 1; flex-shrink: 0; }
+    .plant-info { flex: 1; }
+    .plant-info h5 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .plant-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+    .pill {
+      padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600;
+      background: #e8f4e8; color: #2d6a30; border: 1px solid #c0dcc0;
+    }
+    .pill.warn { background: #fff3cd; color: #856404; border-color: #ffc107; }
+    .pill.bad  { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+    .plant-notes { font-size: 11px; color: #6b8c6c; }
+    .companion-line { font-size: 11px; margin-top: 3px; }
+
+    .plant-grid {
+      font-family: monospace; font-size: 14px; line-height: 1.6;
+      background: #1a3a1c; color: #fff;
+      border-radius: 6px; padding: 10px 14px;
+      letter-spacing: 2px; margin-bottom: 10px;
+      white-space: pre;
+    }
+    .grid-legend { font-size: 10px; color: #6b8c6c; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 10px; }
+    .grid-legend-item { display: flex; align-items: center; gap: 4px; }
+
+    .report-summary {
+      background: #e8f4e8; border: 1px solid #b8d8b8; border-radius: 8px;
+      padding: 14px 18px; margin-bottom: 20px;
+    }
+    .report-summary h3 { font-size: 14px; font-weight: 700; color: #2d6a30; margin-bottom: 10px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .summary-stat { text-align: center; }
+    .summary-stat .val { font-size: 22px; font-weight: 800; color: #2d6a30; }
+    .summary-stat .lbl { font-size: 10px; color: #6b8c6c; }
   </style>
 </head>
 <body>
@@ -214,6 +322,9 @@
       <button class="btn btn-secondary" onclick="suggestLayout()">🔄 Reset Perimeter Layout</button>
       <button class="btn btn-secondary" onclick="exportImg()">📤 Export Image</button>
       <button class="btn btn-secondary" onclick="printPlan()">🖨️ Print Plan</button>
+      <button class="btn btn-secondary" onclick="saveJSON()">💾 Save Plan (JSON)</button>
+      <button class="btn btn-secondary" onclick="loadJSON()">📂 Load Plan (JSON)</button>
+      <button class="btn btn-primary" onclick="openReport()">📋 Plan Report</button>
     </div>
 
     <div class="section">
@@ -330,6 +441,20 @@
     </div>
   </div>
 
+</div>
+
+<!-- ── Report Modal ── -->
+<div class="modal-overlay" id="reportModal" style="display:none" onclick="if(event.target===this)closeReport()">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-tabs">
+        <button class="tab-btn active" id="tab-build" onclick="switchTab('build')">🪵 Bed Builder</button>
+        <button class="tab-btn"        id="tab-plant" onclick="switchTab('plant')">🌱 Plant Organizer</button>
+      </div>
+      <button class="btn btn-sm btn-danger" onclick="closeReport()">✕ Close</button>
+    </div>
+    <div class="modal-body" id="reportBody"></div>
+  </div>
 </div>
 
 <script>
@@ -792,6 +917,352 @@ function printPlan() {
   <div class="footer">Generated with 🌱 Garden Layout Planner</div>
   </body></html>`);
   win.print();
+}
+
+// ─── Plant Data ───────────────────────────────────────────────────────────────
+const PLANT_DATA = {
+  '🍅 Tomatoes':     { emoji:'🍅', sqft:4,    spacing:24, depthIn:12, sun:'Full',      water:'High',   trellis:false, notes:'Stake or cage. Deep roots — 12″+ soil.',         companions:['🌿 Basil','🧅 Onions'],     avoid:['🥦 Broccoli'] },
+  '🌶️ Hot Peppers': { emoji:'🌶️', sqft:1,    spacing:12, depthIn:8,  sun:'Full',      water:'Medium', trellis:false, notes:'Loves heat. Cage to support heavy fruits.',        companions:['🌿 Basil','🧅 Onions'],     avoid:[] },
+  '🥒 Cucumbers':   { emoji:'🥒', sqft:2,    spacing:12, depthIn:8,  sun:'Full',      water:'High',   trellis:true,  notes:'Trellis required. Keep soil evenly moist.',        companions:['🌿 Dill','🧅 Onions'],     avoid:['🌿 Rosemary'] },
+  '🥕 Carrots':     { emoji:'🥕', sqft:1,    spacing:3,  depthIn:12, sun:'Full',      water:'Medium', trellis:false, notes:'Needs 12″+ loose soil. Thin seedlings to 3″.',     companions:['🌿 Rosemary','🧅 Onions'], avoid:['🥦 Broccoli'] },
+  '🎃 Squash':      { emoji:'🎃', sqft:9,    spacing:36, depthIn:8,  sun:'Full',      water:'High',   trellis:false, notes:'Sprawling — place at bed edge to drape over.',     companions:['🌿 Dill'],                 avoid:[] },
+  '🥬 Lettuce':     { emoji:'🥬', sqft:0.25, spacing:6,  depthIn:6,  sun:'Full/Part', water:'Medium', trellis:false, notes:'4 per sq ft. Harvest outer leaves first.',         companions:['🥕 Carrots','🌿 Mint'],    avoid:[] },
+  '🌱 Spinach':     { emoji:'🌱', sqft:0.11, spacing:3,  depthIn:6,  sun:'Full/Part', water:'Medium', trellis:false, notes:'9 per sq ft. Great for cool seasons.',             companions:[],                          avoid:[] },
+  '🫛 Green Beans': { emoji:'🫛', sqft:1,    spacing:6,  depthIn:8,  sun:'Full',      water:'Medium', trellis:false, notes:'Bush variety needs no support.',                   companions:['🥕 Carrots'],              avoid:['🧅 Onions'] },
+  '🧅 Onions':      { emoji:'🧅', sqft:0.25, spacing:4,  depthIn:8,  sun:'Full',      water:'Low',    trellis:false, notes:'16 per sq ft. Plant sets 1″ deep.',                companions:['🍅 Tomatoes','🌶️ Hot Peppers'], avoid:['🫛 Green Beans'] },
+  '🥦 Broccoli':    { emoji:'🥦', sqft:1,    spacing:12, depthIn:8,  sun:'Full',      water:'Medium', trellis:false, notes:'1 plant per sq ft. Watch for caterpillars.',       companions:[],                          avoid:['🍅 Tomatoes','🌶️ Hot Peppers'] },
+  '🌿 Basil':       { emoji:'🌿', sqft:1,    spacing:12, depthIn:6,  sun:'Full',      water:'Medium', trellis:false, notes:'Pinch flowers to extend harvest.',                  companions:['🍅 Tomatoes','🌶️ Hot Peppers'], avoid:['🌿 Dill'] },
+  '🌿 Parsley':     { emoji:'🌿', sqft:0.25, spacing:6,  depthIn:6,  sun:'Full/Part', water:'Medium', trellis:false, notes:'4 per sq ft. Biennial — replant each year.',       companions:['🍅 Tomatoes'],             avoid:[] },
+  '🌿 Cilantro':    { emoji:'🌿', sqft:0.25, spacing:6,  depthIn:6,  sun:'Full/Part', water:'Medium', trellis:false, notes:'Bolts in heat. Succession-plant every 3 weeks.',   companions:[],                          avoid:[] },
+  '🌿 Thyme':       { emoji:'🌿', sqft:1,    spacing:12, depthIn:6,  sun:'Full',      water:'Low',    trellis:false, notes:'Drought-tolerant once established.',                companions:['🍓 Strawberries','🍅 Tomatoes'], avoid:[] },
+  '🌿 Oregano':     { emoji:'🌿', sqft:1,    spacing:12, depthIn:6,  sun:'Full',      water:'Low',    trellis:false, notes:'Spreads aggressively. Consider a sunken pot.',     companions:['🌶️ Hot Peppers'],          avoid:[] },
+  '🌿 Mint':        { emoji:'🌿', sqft:1,    spacing:12, depthIn:6,  sun:'Full/Part', water:'Medium', trellis:false, notes:'Very invasive — sink a buried pot into the bed.',   companions:['🥬 Lettuce'],              avoid:[] },
+  '🌿 Rosemary':    { emoji:'🌿', sqft:4,    spacing:24, depthIn:8,  sun:'Full',      water:'Low',    trellis:false, notes:'Perennial. Great corner or border plant.',          companions:['🥕 Carrots'],             avoid:['🥒 Cucumbers'] },
+  '🌿 Dill':        { emoji:'🌿', sqft:1,    spacing:6,  depthIn:8,  sun:'Full',      water:'Low',    trellis:false, notes:"Tall — plant at north end so it doesn't shade.",    companions:['🥒 Cucumbers','🎃 Squash'],avoid:['🌿 Basil'] },
+  '🍓 Strawberries':{ emoji:'🍓', sqft:1,    spacing:12, depthIn:6,  sun:'Full',      water:'Medium', trellis:false, notes:'Send runners yearly. Refresh plants every 3 years.',companions:['🌿 Thyme'],               avoid:['🥦 Broccoli'] },
+  '🍈 Melon':       { emoji:'🍈', sqft:9,    spacing:36, depthIn:8,  sun:'Full',      water:'High',   trellis:false, notes:'Needs full sun and a long warm season.',            companions:['🌿 Dill'],                avoid:[] },
+};
+
+// ─── Save / Load JSON ─────────────────────────────────────────────────────────
+function saveJSON() {
+  const plan = {
+    version: 1,
+    garden: { ...garden },
+    beds: beds.map(b => ({ ...b, plants: [...(b.plants || [])] })),
+    obstacles: obstacles.map(o => ({ ...o })),
+    savedAt: new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(plan, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'garden-plan.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function loadJSON() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const plan = JSON.parse(ev.target.result);
+        if (plan.garden) {
+          Object.assign(garden, plan.garden);
+          document.getElementById('gardenWidth').value  = garden.width;
+          document.getElementById('gardenHeight').value = garden.height;
+        }
+        if (plan.beds)      beds      = plan.beds;
+        if (plan.obstacles) obstacles = plan.obstacles;
+        select(null); renderLists(); initCanvas();
+        alert('Plan loaded successfully!');
+      } catch { alert('Could not read plan file. Make sure it was saved from this app.'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ─── Report Modal ─────────────────────────────────────────────────────────────
+let activeTab = 'build';
+
+function openReport() {
+  if (!beds.length) { alert('Add at least one bed first.'); return; }
+  activeTab = 'build';
+  document.getElementById('tab-build').classList.add('active');
+  document.getElementById('tab-plant').classList.remove('active');
+  document.getElementById('reportBody').innerHTML = generateBuildHTML();
+  document.getElementById('reportModal').style.display = 'flex';
+}
+
+function closeReport() {
+  document.getElementById('reportModal').style.display = 'none';
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('tab-build').classList.toggle('active', tab === 'build');
+  document.getElementById('tab-plant').classList.toggle('active', tab === 'plant');
+  document.getElementById('reportBody').innerHTML =
+    tab === 'build' ? generateBuildHTML() : generatePlantsHTML();
+}
+
+// ─── Bed Builder ──────────────────────────────────────────────────────────────
+function calcMaterials(bed) {
+  const W = bed.w, L = bed.h;
+  const BOARD_LENGTHS = [6, 8, 10, 12, 14, 16];
+  const nearestLen = dim => BOARD_LENGTHS.find(l => l >= dim) || 16;
+  const boardCost  = len => len <= 6 ? 7 : len <= 8 ? 9 : len <= 10 ? 11 : len <= 12 ? 13 : 16;
+
+  const sideLen  = nearestLen(L);
+  const endLen   = nearestLen(W);
+  const sideCost = boardCost(sideLen);
+  const endCost  = boardCost(endLen);
+
+  const soilCuFt = W * L * (8 / 12);
+  const soilCuYd = soilCuFt / 27;
+
+  const lumberCost = (2 * sideCost) + (2 * endCost);
+  const postCost   = 4 * 4;   // ~$4 per cut corner post
+  const screwCost  = 9;       // 1 lb box deck screws
+  const soilCost   = Math.round(soilCuYd * 38);
+  const total      = lumberCost + postCost + screwCost + soilCost;
+
+  return { W, L, sideLen, endLen, sideCost, endCost,
+    lumberCost, postCost, screwCost,
+    soilCuFt: soilCuFt.toFixed(1), soilCuYd: soilCuYd.toFixed(2),
+    soilCost, total };
+}
+
+function generateBuildHTML() {
+  let grandTotal = 0;
+
+  const bedSections = beds.map(bed => {
+    const m = calcMaterials(bed);
+    grandTotal += m.total;
+    const sqft = bed.w * bed.h;
+
+    return `
+    <div class="report-bed">
+      <div class="report-bed-header">
+        <h3>${bed.name}</h3>
+        <span>${bed.w} ft wide × ${bed.h} ft long × 8 in deep · ${sqft} sq ft</span>
+      </div>
+      <div class="report-bed-body">
+        <div class="report-section">
+          <h4>🧱 Materials List</h4>
+          <table class="materials-table">
+            <tr><th>Item</th><th>Qty</th><th>Size / Notes</th><th class="cost">Est. Cost</th></tr>
+            <tr>
+              <td>2×8 Side Board</td><td>2</td>
+              <td>${m.sideLen} ft (for ${bed.h} ft sides${m.sideLen > bed.h ? ` — ${(m.sideLen - bed.h).toFixed(1)} ft waste` : ''})</td>
+              <td class="cost">$${m.sideCost * 2}</td>
+            </tr>
+            <tr>
+              <td>2×8 End Board</td><td>2</td>
+              <td>${m.endLen} ft (for ${bed.w} ft ends${m.endLen > bed.w ? ` — ${(m.endLen - bed.w).toFixed(1)} ft waste` : ''})</td>
+              <td class="cost">$${m.endCost * 2}</td>
+            </tr>
+            <tr>
+              <td>4×4 Corner Post</td><td>4</td>
+              <td>Cut to 10 in from a 4×4×8 post</td>
+              <td class="cost">$${m.postCost}</td>
+            </tr>
+            <tr>
+              <td>3 in Deck Screws</td><td>1 box</td>
+              <td>Galvanized, 1 lb box (~100 screws)</td>
+              <td class="cost">$${m.screwCost}</td>
+            </tr>
+            <tr class="soil-row">
+              <td>Garden Soil / Mix</td><td>${m.soilCuYd} yd³</td>
+              <td>${m.soilCuFt} cu ft needed (bulk or ~${Math.ceil(m.soilCuFt / 2)} bags × 2 cu ft)</td>
+              <td class="cost">≈$${m.soilCost}</td>
+            </tr>
+            <tr class="total-row">
+              <td colspan="3"><strong>Estimated Total</strong></td>
+              <td class="cost"><strong>$${m.total}</strong></td>
+            </tr>
+          </table>
+          <p style="font-size:11px;color:#888;margin-top:6px">Prices are approximate Home Depot / Lowe's averages. Soil cost varies widely by source (bulk vs. bags).</p>
+        </div>
+
+        <div class="report-section">
+          <h4>✂️ Cut List</h4>
+          <ul class="cut-list">
+            <li>2 × side boards: <strong>${bed.h} ft each</strong> — cut from ${m.sideLen} ft 2×8 boards</li>
+            <li>2 × end boards: <strong>${bed.w} ft each</strong> — cut from ${m.endLen} ft 2×8 boards</li>
+            <li>4 × corner posts: <strong>10 in each</strong> — rip from a single 4×4×8 post</li>
+          </ul>
+        </div>
+
+        <div class="report-section">
+          <h4>🔨 Assembly Steps</h4>
+          <ol class="steps-list">
+            <li>Mark the bed footprint with stakes. Check square: diagonals must be equal.</li>
+            <li>Cut lumber to length per the cut list above using a circular saw or miter saw.</li>
+            <li>Stand two side boards upright and clamp a 10 in corner post flush at each end.</li>
+            <li>Pre-drill 3 holes through the board into the post; drive 3 in galvanized deck screws.</li>
+            <li>Attach the two end boards to the remaining post faces the same way. Re-check square.</li>
+            <li>Set the frame in position, level with shims if needed. Fill with ${m.soilCuFt} cu ft (${m.soilCuYd} yd³) of quality garden mix, rake level, and water before planting.</li>
+          </ol>
+        </div>
+
+        ${bed.notes ? `<div class="report-section"><h4>📝 Bed Notes</h4><p style="font-size:12px;color:#4a6b4b">${bed.notes}</p></div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const totalSqft = beds.reduce((s, b) => s + b.w * b.h, 0);
+  const summary = `
+  <div class="report-summary">
+    <h3>📐 Project Summary</h3>
+    <div class="summary-grid">
+      <div class="summary-stat"><div class="val">${beds.length}</div><div class="lbl">Beds to build</div></div>
+      <div class="summary-stat"><div class="val">${totalSqft}</div><div class="lbl">Total sq ft</div></div>
+      <div class="summary-stat"><div class="val">$${grandTotal}</div><div class="lbl">Est. total cost</div></div>
+    </div>
+  </div>`;
+
+  return summary + bedSections;
+}
+
+// ─── Plant Organizer ──────────────────────────────────────────────────────────
+function buildPlantGrid(bed) {
+  const W = Math.max(1, Math.floor(bed.w));
+  const L = Math.max(1, Math.floor(bed.h));
+  const cells = Array.from({ length: L }, () => Array(W).fill('·'));
+  const legend = [];
+
+  (bed.plants || []).forEach(pName => {
+    const pd = PLANT_DATA[pName];
+    if (!pd) return;
+
+    const emoji     = pd.emoji;
+    const perSqft   = pd.sqft < 1 ? Math.round(1 / pd.sqft) : 1;
+    const cellsEach = pd.sqft >= 1 ? Math.ceil(pd.sqft) : 1;
+    let placed = 0;
+
+    for (let row = 0; row < L && placed < W * L; row++) {
+      for (let col = 0; col < W; col++) {
+        if (cells[row][col] !== '·') continue;
+        cells[row][col] = emoji;
+        placed++;
+        // If plant needs multiple sq ft, mark adjacent cells too (simple: mark next cols)
+        for (let k = 1; k < cellsEach && col + k < W; k++) {
+          if (cells[row][col + k] === '·') { cells[row][col + k] = emoji; placed++; }
+        }
+        col += cellsEach - 1; // advance past used cells
+        break; // one plant placed per sq-ft row pass
+      }
+    }
+    legend.push({ emoji, name: pName });
+  });
+
+  const gridStr = cells.map(row => row.join(' ')).join('\n');
+  return { gridStr, legend };
+}
+
+function generatePlantsHTML() {
+  const bedSections = beds.map(bed => {
+    const plants  = bed.plants || [];
+    const sqftTotal = bed.w * bed.h;
+
+    if (!plants.length) {
+      return `<div class="report-bed">
+        <div class="report-bed-header"><h3>${bed.name}</h3><span>${bed.w}×${bed.h} ft</span></div>
+        <div class="report-bed-body"><p style="color:#888;font-size:13px;padding:4px 0">No plants assigned yet. Select this bed on the canvas and add plants in the right panel.</p></div>
+      </div>`;
+    }
+
+    // Companion & conflict checks
+    const companionAlerts = [];
+    const avoidAlerts     = [];
+    plants.forEach(p => {
+      const pd = PLANT_DATA[p]; if (!pd) return;
+      pd.companions.forEach(c => { if (plants.includes(c)) companionAlerts.push(`${p} + ${c}`); });
+      pd.avoid.forEach(a => { if (plants.includes(a)) avoidAlerts.push(`${p} conflicts with ${a}`); });
+    });
+
+    const alertsHTML = avoidAlerts.length
+      ? `<div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:6px;padding:9px 12px;margin-bottom:12px;font-size:12px">
+          ⚠️ <strong>Conflicts detected:</strong> ${[...new Set(avoidAlerts)].join(' · ')}
+        </div>` : '';
+    const companionsHTML = [...new Set(companionAlerts)].length
+      ? `<div style="background:#e8f4e8;border:1px solid #b8d8b8;border-radius:6px;padding:9px 12px;margin-bottom:12px;font-size:12px">
+          ✅ <strong>Good companions:</strong> ${[...new Set(companionAlerts)].join(' · ')}
+        </div>` : '';
+
+    // Grid
+    const { gridStr, legend } = buildPlantGrid(bed);
+    const gridLegend = legend.map(l =>
+      `<span class="grid-legend-item">${l.emoji} ${l.name.replace(/^\S+\s/, '')}</span>`
+    ).join('') + `<span class="grid-legend-item">· empty</span>`;
+
+    // Per-plant detail rows
+    const plantRows = plants.map(pName => {
+      const pd = PLANT_DATA[pName]; if (!pd) return '';
+      const perSqft    = pd.sqft < 1 ? Math.round(1 / pd.sqft) : null;
+      const countLabel = perSqft
+        ? `~${Math.round(sqftTotal * perSqft)} plants (${perSqft}/sq ft)`
+        : `~${Math.floor(sqftTotal / pd.sqft)} plants`;
+      const trellisTag  = pd.trellis ? `<span class="pill warn">🪝 Trellis needed</span>` : '';
+      const cTags = pd.companions.filter(c => plants.includes(c)).map(c => `<span class="pill">✅ ${c}</span>`).join('');
+      const aTags = pd.avoid.filter(a => plants.includes(a)).map(a => `<span class="pill bad">⚠️ ${a}</span>`).join('');
+
+      return `<div class="plant-row">
+        <div class="plant-emoji">${pd.emoji}</div>
+        <div class="plant-info">
+          <h5>${pName}</h5>
+          <div class="plant-meta">
+            <span class="pill">📐 ${pd.sqft >= 1 ? pd.sqft + ' sq ft/plant' : perSqft + '/sq ft'}</span>
+            <span class="pill">↔ ${pd.spacing}" apart</span>
+            <span class="pill">⬇ ${pd.depthIn}" soil</span>
+            <span class="pill">☀ ${pd.sun}</span>
+            <span class="pill">💧 ${pd.water}</span>
+            ${trellisTag}
+          </div>
+          ${(cTags || aTags) ? `<div class="plant-meta">${cTags}${aTags}</div>` : ''}
+          <div class="plant-notes">${countLabel} in this ${sqftTotal} sq ft bed. ${pd.notes}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="report-bed">
+      <div class="report-bed-header">
+        <h3>${bed.name}</h3>
+        <span>${bed.w} ft × ${bed.h} ft · ${sqftTotal} sq ft</span>
+      </div>
+      <div class="report-bed-body">
+        ${alertsHTML}${companionsHTML}
+        <div class="report-section">
+          <h4>🗺 Square-Foot Layout (top view, 1 cell = 1 sq ft)</h4>
+          <div class="grid-legend">${gridLegend}</div>
+          <div class="plant-grid">${gridStr}</div>
+          <p style="font-size:10px;color:#888;margin-top:4px">${bed.w} cols × ${bed.h} rows = ${sqftTotal} sq ft. Layout is approximate — adjust spacing in your garden.</p>
+        </div>
+        <div class="report-section">
+          <h4>🌿 Plant Details</h4>
+          ${plantRows}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const uniquePlants = [...new Set(beds.flatMap(b => b.plants || []))];
+  const summary = `
+  <div class="report-summary">
+    <h3>🌱 Planting Summary</h3>
+    <div class="summary-grid">
+      <div class="summary-stat"><div class="val">${beds.length}</div><div class="lbl">Beds</div></div>
+      <div class="summary-stat"><div class="val">${uniquePlants.length}</div><div class="lbl">Unique plants</div></div>
+      <div class="summary-stat"><div class="val">${beds.reduce((s,b)=>s+b.w*b.h,0)}</div><div class="lbl">Sq ft total</div></div>
+    </div>
+  </div>`;
+
+  return summary + bedSections;
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
