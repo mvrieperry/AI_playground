@@ -269,6 +269,29 @@
     .grid-legend { font-size: 10px; color: #6b8c6c; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 10px; }
     .grid-legend-item { display: flex; align-items: center; gap: 4px; }
 
+    /* ── Interactive Plant Grid ── */
+    .igrid {
+      display: grid; gap: 3px;
+      background: #1a3a1c; border-radius: 8px;
+      padding: 10px; margin-bottom: 6px;
+      width: fit-content; max-width: 100%;
+    }
+    .igrid-cell {
+      width: 38px; height: 38px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; border-radius: 4px;
+      background: rgba(255,255,255,0.07);
+      border: 1.5px solid transparent;
+      box-sizing: border-box;
+      transition: background 0.12s, border-color 0.12s;
+      user-select: none;
+    }
+    .igrid-cell.has-plant { cursor: grab; background: rgba(255,255,255,0.14); }
+    .igrid-cell.has-plant:active { cursor: grabbing; }
+    .igrid-cell.empty { color: rgba(255,255,255,0.2); font-size: 11px; cursor: default; }
+    .igrid-cell.dragging { opacity: 0.35; border-color: #ff9f0a; }
+    .igrid-cell.drag-over { background: rgba(255,159,10,0.3); border-color: #ff9f0a; border-style: dashed; }
+
     .report-summary {
       background: #e8f4e8; border: 1px solid #b8d8b8; border-radius: 8px;
       padding: 14px 18px; margin-bottom: 20px;
@@ -1171,40 +1194,117 @@ function generateBuildHTML() {
   return summary + bedSections;
 }
 
-// ─── Plant Organizer ──────────────────────────────────────────────────────────
-function buildPlantGrid(bed) {
+// ─── Interactive Plant Grid ────────────────────────────────────────────────────
+let igridDragSrc = null;
+
+function initPlantGrid(bed) {
+  if (bed.plantGrid) return;
   const W = Math.max(1, Math.floor(bed.w));
   const L = Math.max(1, Math.floor(bed.h));
-  const cells = Array.from({ length: L }, () => Array(W).fill('·'));
-  const legend = [];
+  const cells = Array.from({ length: L }, () => Array(W).fill(null));
 
   (bed.plants || []).forEach(pName => {
-    const pd = PLANT_DATA[pName];
-    if (!pd) return;
-
-    const emoji     = pd.emoji;
-    const perSqft   = pd.sqft < 1 ? Math.round(1 / pd.sqft) : 1;
-    const cellsEach = pd.sqft >= 1 ? Math.ceil(pd.sqft) : 1;
-    let placed = 0;
-
-    for (let row = 0; row < L && placed < W * L; row++) {
+    const pd = PLANT_DATA[pName]; if (!pd) return;
+    const cellsEach = Math.max(1, Math.ceil(pd.sqft));
+    for (let row = 0; row < L; row++) {
       for (let col = 0; col < W; col++) {
-        if (cells[row][col] !== '·') continue;
-        cells[row][col] = emoji;
-        placed++;
-        // If plant needs multiple sq ft, mark adjacent cells too (simple: mark next cols)
+        if (cells[row][col] !== null) continue;
+        cells[row][col] = pd.emoji;
         for (let k = 1; k < cellsEach && col + k < W; k++) {
-          if (cells[row][col + k] === '·') { cells[row][col + k] = emoji; placed++; }
+          if (cells[row][col + k] === null) cells[row][col + k] = pd.emoji;
         }
-        col += cellsEach - 1; // advance past used cells
-        break; // one plant placed per sq-ft row pass
+        col += cellsEach - 1;
+        break;
       }
     }
-    legend.push({ emoji, name: pName });
   });
+  bed.plantGrid = cells;
+}
 
-  const gridStr = cells.map(row => row.join(' ')).join('\n');
-  return { gridStr, legend };
+function resetPlantGrid(bedId) {
+  const bed = beds.find(b => b.id === bedId);
+  if (!bed) return;
+  delete bed.plantGrid;
+  initPlantGrid(bed);
+  rerenderIGrid(bedId);
+}
+
+function igridCellHTML(cell, bedId, ri, ci) {
+  const hasPlant = cell !== null;
+  return `<div class="igrid-cell ${hasPlant ? 'has-plant' : 'empty'}"
+    ${hasPlant ? 'draggable="true"' : ''}
+    data-bed="${bedId}" data-row="${ri}" data-col="${ci}"
+    ondragstart="igridDragStart(event)"
+    ondragover="igridDragOver(event)"
+    ondragleave="igridDragLeave(event)"
+    ondrop="igridDrop(event)"
+    ondragend="igridDragEnd(event)">${cell !== null ? cell : '·'}</div>`;
+}
+
+function renderInteractiveGrid(bed) {
+  initPlantGrid(bed);
+  const W = Math.max(1, Math.floor(bed.w));
+  const cells = bed.plantGrid.flatMap((row, ri) =>
+    row.map((cell, ci) => igridCellHTML(cell, bed.id, ri, ci))
+  ).join('');
+  const legend = (bed.plants || []).map(pName => {
+    const pd = PLANT_DATA[pName]; if (!pd) return '';
+    return `<span class="grid-legend-item">${pd.emoji} ${pName.replace(/^\S+\s/, '')}</span>`;
+  }).join('') + `<span class="grid-legend-item" style="opacity:0.5">· empty</span>`;
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+      <div class="grid-legend" style="margin:0">${legend}</div>
+      <button class="btn btn-sm" style="font-size:11px;padding:3px 10px;flex-shrink:0" onclick="resetPlantGrid('${bed.id}')">↺ Reset layout</button>
+    </div>
+    <div class="igrid" id="igrid-${bed.id}" style="grid-template-columns:repeat(${W},38px)">${cells}</div>
+    <p style="font-size:10px;color:#888;margin-top:4px">Drag emojis to rearrange · ${bed.w} cols × ${bed.h} rows · 1 cell = 1 sq ft</p>`;
+}
+
+function rerenderIGrid(bedId) {
+  const container = document.getElementById(`igrid-${bedId}`);
+  if (!container) return;
+  const bed = beds.find(b => b.id === bedId);
+  if (!bed?.plantGrid) return;
+  const W = Math.max(1, Math.floor(bed.w));
+  container.innerHTML = bed.plantGrid.flatMap((row, ri) =>
+    row.map((cell, ci) => igridCellHTML(cell, bed.id, ri, ci))
+  ).join('');
+}
+
+function igridDragStart(e) {
+  igridDragSrc = { bedId: e.currentTarget.dataset.bed, row: +e.currentTarget.dataset.row, col: +e.currentTarget.dataset.col };
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.classList.add('dragging');
+}
+
+function igridDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+}
+
+function igridDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+
+function igridDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  igridDragSrc = null;
+}
+
+function igridDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (!igridDragSrc) return;
+  const dst = { bedId: e.currentTarget.dataset.bed, row: +e.currentTarget.dataset.row, col: +e.currentTarget.dataset.col };
+  if (igridDragSrc.bedId !== dst.bedId) return;
+  if (igridDragSrc.row === dst.row && igridDragSrc.col === dst.col) return;
+  const bed = beds.find(b => b.id === igridDragSrc.bedId);
+  if (!bed?.plantGrid) return;
+  // Swap cells
+  const tmp = bed.plantGrid[igridDragSrc.row][igridDragSrc.col];
+  bed.plantGrid[igridDragSrc.row][igridDragSrc.col] = bed.plantGrid[dst.row][dst.col];
+  bed.plantGrid[dst.row][dst.col] = tmp;
+  igridDragSrc = null;
+  rerenderIGrid(bed.id);
 }
 
 function generatePlantsHTML() {
@@ -1237,11 +1337,7 @@ function generatePlantsHTML() {
           ✅ <strong>Good companions:</strong> ${[...new Set(companionAlerts)].join(' · ')}
         </div>` : '';
 
-    // Grid
-    const { gridStr, legend } = buildPlantGrid(bed);
-    const gridLegend = legend.map(l =>
-      `<span class="grid-legend-item">${l.emoji} ${l.name.replace(/^\S+\s/, '')}</span>`
-    ).join('') + `<span class="grid-legend-item">· empty</span>`;
+    // Grid (interactive)
 
     // Per-plant detail rows
     const plantRows = plants.map(pName => {
@@ -1280,10 +1376,8 @@ function generatePlantsHTML() {
       <div class="report-bed-body">
         ${alertsHTML}${companionsHTML}
         <div class="report-section">
-          <h4>🗺 Square-Foot Layout (top view, 1 cell = 1 sq ft)</h4>
-          <div class="grid-legend">${gridLegend}</div>
-          <div class="plant-grid">${gridStr}</div>
-          <p style="font-size:10px;color:#888;margin-top:4px">${bed.w} cols × ${bed.h} rows = ${sqftTotal} sq ft. Layout is approximate — adjust spacing in your garden.</p>
+          <h4>🗺 Square-Foot Layout (drag to rearrange)</h4>
+          ${renderInteractiveGrid(bed)}
         </div>
         <div class="report-section">
           <h4>🌿 Plant Details</h4>
