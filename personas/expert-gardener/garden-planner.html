@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌱 Garden Layout Planner</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f4f0;
+      color: #2d3a2e;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    .app { display: flex; height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 240px;
+      background: #fff;
+      border-right: 1px solid #d4e4d4;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 14px 16px;
+      background: #2d6a30;
+      color: white;
+    }
+    .sidebar-header h1 { font-size: 15px; font-weight: 700; }
+    .sidebar-header p { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+
+    .section {
+      padding: 12px 14px;
+      border-bottom: 1px solid #e8f0e8;
+    }
+    .section h2 {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #6b8c6c;
+      margin-bottom: 8px;
+    }
+
+    .input-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+    .input-row label { font-size: 12px; color: #4a6b4b; width: 52px; flex-shrink: 0; }
+    .input-row input {
+      flex: 1; padding: 4px 7px;
+      border: 1px solid #c8dcc8; border-radius: 4px; font-size: 13px;
+    }
+    .input-row span { font-size: 11px; color: #888; }
+
+    .btn {
+      padding: 7px 10px; border: none; border-radius: 5px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: background 0.15s; width: 100%;
+    }
+    .btn + .btn { margin-top: 5px; }
+    .btn-primary { background: #2d6a30; color: white; }
+    .btn-primary:hover { background: #1f4d21; }
+    .btn-secondary { background: #e8f4e8; color: #2d6a30; border: 1px solid #b8d8b8; }
+    .btn-secondary:hover { background: #d4ecd4; }
+    .btn-sm { width: auto; padding: 4px 9px; font-size: 11px; }
+    .btn-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+    .btn-danger:hover { background: #fecaca; }
+
+    /* Bed / obstacle list */
+    .list-item {
+      padding: 7px 9px; border-radius: 5px;
+      border: 1.5px solid #d4e4d4;
+      margin-bottom: 5px; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .list-item:hover { border-color: #2d6a30; background: #f4fbf4; }
+    .list-item.selected { border-color: #2d6a30; background: #e8f4e8; }
+    .list-item-header { display: flex; justify-content: space-between; align-items: center; }
+    .list-item-name { font-size: 12px; font-weight: 600; }
+    .list-item-sub { font-size: 10px; color: #6b8c6c; margin-top: 2px; }
+    .color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── Main ── */
+    .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+    .toolbar {
+      padding: 8px 14px; background: #fff;
+      border-bottom: 1px solid #d4e4d4;
+      display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    }
+    .toolbar-hint {
+      font-size: 11px; color: #6b8c6c;
+      background: #f0f8f0; border: 1px solid #c8e0c8;
+      border-radius: 4px; padding: 3px 8px;
+    }
+    .snap-toggle { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #4a6b4b; margin-left: auto; }
+
+    .canvas-area {
+      flex: 1; overflow: auto; padding: 20px;
+      display: flex; justify-content: center; align-items: flex-start;
+    }
+
+    #gardenCanvas {
+      border: 2px solid #2d6a30; border-radius: 3px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      display: block;
+    }
+
+    /* ── Right Panel ── */
+    .right-panel {
+      width: 220px; flex-shrink: 0;
+      background: #fff;
+      border-left: 1px solid #d4e4d4;
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .right-panel.open { display: flex; }
+
+    .panel-header {
+      padding: 12px 14px; border-bottom: 1px solid #e8f0e8;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .panel-header h2 { font-size: 13px; font-weight: 700; }
+
+    .panel-section { padding: 10px 14px; border-bottom: 1px solid #e8f0e8; }
+    .panel-section h3 {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      color: #6b8c6c; margin-bottom: 7px;
+    }
+
+    .field { margin-bottom: 7px; }
+    .field label { display: block; font-size: 11px; color: #4a6b4b; margin-bottom: 2px; }
+    .field input, .field select, .field textarea {
+      width: 100%; padding: 4px 7px;
+      border: 1px solid #c8dcc8; border-radius: 4px; font-size: 12px;
+    }
+    .field textarea { resize: vertical; height: 52px; }
+    .field-row { display: flex; gap: 5px; }
+    .field-row .field { flex: 1; }
+
+    .plant-tag {
+      display: inline-block; padding: 2px 7px;
+      background: #e8f4e8; color: #2d6a30;
+      border-radius: 10px; font-size: 10px;
+      margin: 2px; border: 1px solid #b8d8b8;
+    }
+    .plant-tag .rm { cursor: pointer; margin-left: 3px; color: #dc2626; font-weight: bold; }
+
+    .add-plant-row { display: flex; gap: 5px; margin-top: 6px; }
+    .add-plant-row select {
+      flex: 1; padding: 4px 6px;
+      border: 1px solid #c8dcc8; border-radius: 4px; font-size: 11px;
+    }
+
+    .tip {
+      margin: 10px 14px 6px;
+      background: #fffbeb; border: 1px solid #fbbf24;
+      border-radius: 5px; padding: 7px 9px;
+      font-size: 10px; color: #92400e; line-height: 1.4;
+    }
+
+    /* ── Legend ── */
+    .legend { display: flex; flex-direction: column; gap: 5px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+    .legend-swatch { width: 16px; height: 12px; border-radius: 2px; border: 1px solid rgba(0,0,0,0.15); }
+
+    /* ── Report Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.45);
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 32px 16px; overflow-y: auto;
+    }
+    .modal-card {
+      background: #fff; border-radius: 10px;
+      width: 100%; max-width: 860px;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.25);
+      display: flex; flex-direction: column;
+      max-height: calc(100vh - 64px);
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px; border-bottom: 1px solid #e0ece0;
+      flex-shrink: 0;
+    }
+    .modal-tabs { display: flex; gap: 6px; }
+    .tab-btn {
+      padding: 6px 14px; border-radius: 5px; font-size: 13px; font-weight: 600;
+      border: 1.5px solid #c8dcc8; background: #f4fbf4; color: #4a6b4b; cursor: pointer;
+    }
+    .tab-btn.active { background: #2d6a30; color: #fff; border-color: #2d6a30; }
+    .modal-body { overflow-y: auto; padding: 20px 24px; flex: 1; }
+
+    /* Report sections */
+    .report-bed {
+      border: 1px solid #d4e4d4; border-radius: 8px;
+      margin-bottom: 20px; overflow: hidden;
+    }
+    .report-bed-header {
+      background: #2d6a30; color: #fff;
+      padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .report-bed-header h3 { font-size: 14px; font-weight: 700; }
+    .report-bed-header span { font-size: 12px; opacity: 0.85; }
+    .report-bed-body { padding: 14px 16px; }
+
+    .report-section { margin-bottom: 14px; }
+    .report-section h4 {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: #6b8c6c; margin-bottom: 8px;
+    }
+
+    .materials-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .materials-table th { background: #f0f8f0; text-align: left; padding: 5px 8px; font-size: 11px; color: #4a6b4b; border-bottom: 1px solid #d4e4d4; }
+    .materials-table td { padding: 5px 8px; border-bottom: 1px solid #eef6ee; }
+    .materials-table tr:last-child td { border-bottom: none; }
+    .materials-table .cost { text-align: right; font-weight: 600; color: #2d6a30; }
+    .materials-table .soil-row td { color: #888; font-style: italic; }
+    .total-row td { font-weight: 700; background: #f0f8f0; }
+
+    .cut-list { font-size: 12px; line-height: 1.8; }
+    .cut-list li { margin-bottom: 2px; }
+
+    .steps-list { font-size: 12px; line-height: 1.7; counter-reset: step; list-style: none; }
+    .steps-list li { counter-increment: step; padding-left: 24px; position: relative; margin-bottom: 4px; }
+    .steps-list li::before {
+      content: counter(step);
+      position: absolute; left: 0;
+      background: #2d6a30; color: #fff;
+      width: 16px; height: 16px; border-radius: 50%;
+      font-size: 9px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      top: 2px;
+    }
+
+    .plant-section { margin-bottom: 14px; }
+    .plant-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      border: 1px solid #e8f0e8; border-radius: 6px;
+      padding: 10px 12px; margin-bottom: 8px; background: #fafdf8;
+    }
+    .plant-emoji { font-size: 24px; line-height: 1; flex-shrink: 0; }
+    .plant-info { flex: 1; }
+    .plant-info h5 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .plant-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+    .pill {
+      padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600;
+      background: #e8f4e8; color: #2d6a30; border: 1px solid #c0dcc0;
+    }
+    .pill.warn { background: #fff3cd; color: #856404; border-color: #ffc107; }
+    .pill.bad  { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+    .plant-notes { font-size: 11px; color: #6b8c6c; }
+    .companion-line { font-size: 11px; margin-top: 3px; }
+
+    .plant-grid {
+      font-family: monospace; font-size: 14px; line-height: 1.6;
+      background: #1a3a1c; color: #fff;
+      border-radius: 6px; padding: 10px 14px;
+      letter-spacing: 2px; margin-bottom: 10px;
+      white-space: pre;
+    }
+    .grid-legend { font-size: 10px; color: #6b8c6c; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 10px; }
+    .grid-legend-item { display: flex; align-items: center; gap: 4px; }
+
+    .report-summary {
+      background: #e8f4e8; border: 1px solid #b8d8b8; border-radius: 8px;
+      padding: 14px 18px; margin-bottom: 20px;
+    }
+    .report-summary h3 { font-size: 14px; font-weight: 700; color: #2d6a30; margin-bottom: 10px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .summary-stat { text-align: center; }
+    .summary-stat .val { font-size: 22px; font-weight: 800; color: #2d6a30; }
+    .summary-stat .lbl { font-size: 10px; color: #6b8c6c; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── Sidebar ── -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>🌱 Garden Layout Planner</h1>
+      <p>Drag beds · Click to edit · Double-click to rename</p>
+    </div>
+
+    <div class="section">
+      <h2>Garden Dimensions</h2>
+      <div class="input-row">
+        <label>Width</label>
+        <input type="number" id="gardenWidth" value="20" min="5" max="200">
+        <span>ft</span>
+      </div>
+      <div class="input-row">
+        <label>Length</label>
+        <input type="number" id="gardenHeight" value="18" min="5" max="200">
+        <span>ft</span>
+      </div>
+      <button class="btn btn-secondary" onclick="applyGardenSize()">Apply Size</button>
+    </div>
+
+    <div class="section">
+      <h2>Raised Beds</h2>
+      <div id="bedList"></div>
+      <button class="btn btn-primary" onclick="addBed()" style="margin-top:6px">+ Add Bed</button>
+    </div>
+
+    <div class="section">
+      <h2>Obstacles</h2>
+      <div id="obstacleList"></div>
+      <button class="btn btn-secondary" onclick="addObstacle()" style="margin-top:6px">+ Add Obstacle</button>
+    </div>
+
+    <div class="section">
+      <h2>Quick Actions</h2>
+      <button class="btn btn-secondary" onclick="suggestLayout()">🔄 Reset Perimeter Layout</button>
+      <button class="btn btn-secondary" onclick="exportImg()">📤 Export Image</button>
+      <button class="btn btn-secondary" onclick="printPlan()">🖨️ Print Plan</button>
+      <button class="btn btn-secondary" onclick="saveJSON()">💾 Save Plan (JSON)</button>
+      <button class="btn btn-secondary" onclick="loadJSON()">📂 Load Plan (JSON)</button>
+      <button class="btn btn-primary" onclick="openReport()">📋 Plan Report</button>
+    </div>
+
+    <div class="section">
+      <h2>Legend</h2>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-swatch" style="background:#8B5E3C"></div> Raised Bed
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background:#6aaa6b; opacity:0.65"></div> Obstacle
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background:#e8f5e0; border:1px solid #a0c8a0"></div> Open Garden
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Canvas ── -->
+  <div class="main">
+    <div class="toolbar">
+      <span class="toolbar-hint">🖱️ Drag to move &nbsp;|&nbsp; Click to select &nbsp;|&nbsp; Double-click to rename &nbsp;|&nbsp; Edit size/plants in the right panel</span>
+      <label class="snap-toggle">
+        <input type="checkbox" id="snapToggle" checked> Snap to ½ ft grid
+      </label>
+    </div>
+    <div class="canvas-area">
+      <canvas id="gardenCanvas"></canvas>
+    </div>
+  </div>
+
+  <!-- ── Right Panel ── -->
+  <div class="right-panel" id="rightPanel">
+    <div class="panel-header">
+      <h2 id="panelTitle">Details</h2>
+      <button class="btn btn-sm btn-danger" onclick="deleteSelected()">🗑 Remove</button>
+    </div>
+
+    <div class="panel-section">
+      <h3>Properties</h3>
+      <div class="field">
+        <label>Name</label>
+        <input type="text" id="propName" oninput="updateProp('name', this.value)">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Width (ft)</label>
+          <input type="number" id="propW" min="1" max="40" step="0.5" oninput="updateProp('w', +this.value)">
+        </div>
+        <div class="field">
+          <label>Length (ft)</label>
+          <input type="number" id="propH" min="1" max="40" step="0.5" oninput="updateProp('h', +this.value)">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>X from left (ft)</label>
+          <input type="number" id="propX" min="0" step="0.5" oninput="updateProp('x', +this.value)">
+        </div>
+        <div class="field">
+          <label>Y from top (ft)</label>
+          <input type="number" id="propY" min="0" step="0.5" oninput="updateProp('y', +this.value)">
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section" id="plantsSection">
+      <h3>Plants</h3>
+      <div id="plantTags"></div>
+      <div class="add-plant-row">
+        <select id="plantSelect">
+          <option value="">Add plant…</option>
+          <optgroup label="Vegetables">
+            <option>🍅 Tomatoes</option>
+            <option>🌶️ Hot Peppers</option>
+            <option>🥒 Cucumbers</option>
+            <option>🥕 Carrots</option>
+            <option>🎃 Squash</option>
+            <option>🥬 Lettuce</option>
+            <option>🌱 Spinach</option>
+            <option>🫛 Green Beans</option>
+            <option>🧅 Onions</option>
+            <option>🥦 Broccoli</option>
+          </optgroup>
+          <optgroup label="Herbs">
+            <option>🌿 Basil</option>
+            <option>🌿 Parsley</option>
+            <option>🌿 Cilantro</option>
+            <option>🌿 Thyme</option>
+            <option>🌿 Oregano</option>
+            <option>🌿 Mint</option>
+            <option>🌿 Rosemary</option>
+            <option>🌿 Dill</option>
+          </optgroup>
+          <optgroup label="Fruit">
+            <option>🍓 Strawberries</option>
+            <option>🍈 Melon</option>
+          </optgroup>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="addPlant()">Add</button>
+      </div>
+    </div>
+
+    <div class="panel-section" id="notesSection">
+      <h3>Notes</h3>
+      <div class="field">
+        <textarea id="propNotes" placeholder="e.g. needs trellis, full sun, 18″ spacing…"
+          oninput="updateProp('notes', this.value)"></textarea>
+      </div>
+    </div>
+
+    <div class="tip">
+      💡 Keep beds <strong>4 ft wide max</strong> so you can reach the center from both sides without stepping in.
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Report Modal ── -->
+<div class="modal-overlay" id="reportModal" style="display:none" onclick="if(event.target===this)closeReport()">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-tabs">
+        <button class="tab-btn active" id="tab-build" onclick="switchTab('build')">🪵 Bed Builder</button>
+        <button class="tab-btn"        id="tab-plant" onclick="switchTab('plant')">🌱 Plant Organizer</button>
+      </div>
+      <button class="btn btn-sm btn-danger" onclick="closeReport()">✕ Close</button>
+    </div>
+    <div class="modal-body" id="reportBody"></div>
+  </div>
+</div>
+
+<script>
+// ─── Config ──────────────────────────────────────────────────────────────────
+const SCALE = 36; // px per foot
+const GRID  = 0.5; // snap resolution in feet
+
+let garden   = { width: 20, height: 18 };
+let selectedId = null;
+let dragging   = null;
+let dragOff    = { x: 0, y: 0 };
+let nextId     = 20;
+
+// ─── Data ────────────────────────────────────────────────────────────────────
+let obstacles = [
+  { id:'obs1', name:'🌳 Tree',      x:0,  y:0,  w:4, h:4, color:'#5aaa5b' },
+  { id:'obs2', name:'🚪 Door',      x:0,  y:14, w:2, h:4, color:'#b87333' },
+  { id:'obs3', name:'🪑 Furniture', x:14, y:0,  w:6, h:6, color:'#9a9a9a' },
+  { id:'obs4', name:'〰️ Hedge',     x:16, y:14, w:4, h:4, color:'#2a7a2a' },
+];
+
+let beds = [
+  { id:'bed1', name:'Bed 1 — Top',    x:4,  y:0,  w:10, h:4, color:'#8B5E3C',
+    plants:['🍅 Tomatoes','🌶️ Hot Peppers'], notes:'Full sun. Stake tomatoes, cage peppers.' },
+  { id:'bed2', name:'Bed 2 — Left',   x:0,  y:4,  w:4,  h:8, color:'#6B4226',
+    plants:['🥒 Cucumbers','🌿 Basil'], notes:'Trellis on inner (yard-facing) edge for cucumbers.' },
+  { id:'bed3', name:'Bed 3 — Bottom', x:4,  y:14, w:8,  h:4, color:'#7A5230',
+    plants:['🥕 Carrots','🎃 Squash'], notes:'Squash can sprawl over the front edge.' },
+  { id:'bed4', name:'Bed 4 — Right',  x:14, y:6,  w:4,  h:6, color:'#5C3D1E',
+    plants:['🍓 Strawberries','🌿 Thyme'], notes:'Strawberries return every year via runners.' },
+];
+
+const BED_COLORS = ['#8B5E3C','#6B4226','#7A5230','#5C3D1E','#9B6B3C','#4A3020','#A0522D'];
+let colorIdx = 4;
+
+// ─── Canvas setup ────────────────────────────────────────────────────────────
+const canvas = document.getElementById('gardenCanvas');
+const ctx    = canvas.getContext('2d');
+
+function ft(v) { return v * SCALE; }
+function px(v) { return v / SCALE; }
+function snap(v) {
+  if (!document.getElementById('snapToggle').checked) return v;
+  return Math.round(v / GRID) * GRID;
+}
+
+function initCanvas() {
+  canvas.width  = ft(garden.width);
+  canvas.height = ft(garden.height);
+  draw();
+}
+
+// ─── Draw ─────────────────────────────────────────────────────────────────────
+function draw() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Background
+  ctx.fillStyle = '#dff0d8';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x <= garden.width; x++) {
+    ctx.strokeStyle = x % 5 === 0 ? '#a8c8a8' : '#c8e0c0';
+    ctx.beginPath(); ctx.moveTo(ft(x), 0); ctx.lineTo(ft(x), H); ctx.stroke();
+  }
+  for (let y = 0; y <= garden.height; y++) {
+    ctx.strokeStyle = y % 5 === 0 ? '#a8c8a8' : '#c8e0c0';
+    ctx.beginPath(); ctx.moveTo(0, ft(y)); ctx.lineTo(W, ft(y)); ctx.stroke();
+  }
+
+  // Foot labels
+  ctx.fillStyle = '#7aaa7a'; ctx.font = '9px sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let x = 1; x < garden.width; x += (garden.width > 30 ? 5 : 2))
+    ctx.fillText(x, ft(x), 2);
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (let y = 1; y < garden.height; y += (garden.height > 30 ? 5 : 2))
+    ctx.fillText(y, W - 3, ft(y));
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+
+  // Draw obstacles (back layer)
+  obstacles.forEach(o => drawObstacle(o));
+
+  // Draw beds (front layer)
+  beds.forEach(b => drawBed(b));
+}
+
+function drawObstacle(o) {
+  const x = ft(o.x), y = ft(o.y), w = ft(o.w), h = ft(o.h);
+  const sel = o.id === selectedId;
+
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = o.color;
+  roundRect(x, y, w, h, 4);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  ctx.strokeStyle = sel ? '#ff9f0a' : 'rgba(0,0,0,0.25)';
+  ctx.lineWidth   = sel ? 2.5 : 1;
+  roundRect(x, y, w, h, 4); ctx.stroke();
+
+  // label
+  ctx.fillStyle = '#fff';
+  ctx.font = `bold ${clamp(10, 13, w / 5)}px sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  wrapText(o.name, x + w/2, y + h/2, w - 8, 14);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+}
+
+function drawBed(b) {
+  const x = ft(b.x), y = ft(b.y), w = ft(b.w), h = ft(b.h);
+  const sel = b.id === selectedId;
+
+  // Shadow
+  ctx.shadowColor = sel ? 'rgba(255,159,10,0.4)' : 'rgba(0,0,0,0.18)';
+  ctx.shadowBlur  = sel ? 12 : 5;
+  ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2;
+
+  ctx.fillStyle = b.color;
+  roundRect(x, y, w, h, 5); ctx.fill();
+
+  ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+
+  // Selection ring
+  if (sel) {
+    ctx.strokeStyle = '#ff9f0a'; ctx.lineWidth = 3;
+    roundRect(x, y, w, h, 5); ctx.stroke();
+  }
+
+  // Soil texture dots
+  ctx.globalAlpha = 0.1; ctx.fillStyle = '#fff';
+  for (let dx = 10; dx < w - 5; dx += 14)
+    for (let dy = 10; dy < h - 5; dy += 14) {
+      ctx.beginPath(); ctx.arc(x+dx, y+dy, 2, 0, Math.PI*2); ctx.fill();
+    }
+  ctx.globalAlpha = 1;
+
+  // Bed name
+  ctx.fillStyle = '#fff';
+  ctx.font = `bold ${clamp(10, 13, w / 5)}px sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText(b.name, x + w/2, y + 7);
+
+  // Size
+  ctx.font = `${clamp(9, 11, w/6)}px sans-serif`;
+  ctx.globalAlpha = 0.75;
+  ctx.fillText(`${b.w} × ${b.h} ft`, x + w/2, y + 22);
+  ctx.globalAlpha = 1;
+
+  // Plants
+  if (b.plants && b.plants.length && h > 70) {
+    ctx.font = `${clamp(9, 11, w/6)}px sans-serif`;
+    b.plants.slice(0, 4).forEach((p, i) => {
+      ctx.globalAlpha = 0.88;
+      ctx.fillText(p, x + w/2, y + 38 + i * 14);
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+}
+
+// ─── Canvas helpers ───────────────────────────────────────────────────────────
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function wrapText(text, cx, cy, maxW, lineH) {
+  const words = text.split(' ');
+  let line = '';
+  const lines = [];
+  words.forEach(w => {
+    const test = line ? line + ' ' + w : w;
+    if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; }
+    else line = test;
+  });
+  lines.push(line);
+  const startY = cy - ((lines.length - 1) * lineH) / 2;
+  lines.forEach((l, i) => ctx.fillText(l, cx, startY + i * lineH));
+}
+
+function clamp(min, max, val) { return Math.min(max, Math.max(min, val)); }
+
+// ─── Hit test ────────────────────────────────────────────────────────────────
+function hitTest(px, py) {
+  for (let i = beds.length - 1; i >= 0; i--) {
+    const b = beds[i];
+    if (px >= ft(b.x) && px <= ft(b.x+b.w) && py >= ft(b.y) && py <= ft(b.y+b.h))
+      return { type:'bed', item:b };
+  }
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const o = obstacles[i];
+    if (px >= ft(o.x) && px <= ft(o.x+o.w) && py >= ft(o.y) && py <= ft(o.y+o.h))
+      return { type:'obstacle', item:o };
+  }
+  return null;
+}
+
+// ─── Mouse events ─────────────────────────────────────────────────────────────
+canvas.addEventListener('mousedown', e => {
+  const r   = canvas.getBoundingClientRect();
+  const mpx = e.clientX - r.left, mpy = e.clientY - r.top;
+  const hit = hitTest(mpx, mpy);
+  if (hit) {
+    select(hit.item.id, hit.type);
+    dragging = hit.item;
+    dragOff  = { x: mpx - ft(hit.item.x), y: mpy - ft(hit.item.y) };
+    canvas.style.cursor = 'grabbing';
+  } else {
+    select(null);
+  }
+});
+
+canvas.addEventListener('mousemove', e => {
+  const r   = canvas.getBoundingClientRect();
+  const mpx = e.clientX - r.left, mpy = e.clientY - r.top;
+
+  if (dragging) {
+    const newX = snap(Math.max(0, Math.min(px(mpx - dragOff.x), garden.width  - dragging.w)));
+    const newY = snap(Math.max(0, Math.min(px(mpy - dragOff.y), garden.height - dragging.h)));
+    dragging.x = newX;
+    dragging.y = newY;
+    syncPositionFields();
+    draw();
+  } else {
+    canvas.style.cursor = hitTest(mpx, mpy) ? 'grab' : 'default';
+  }
+});
+
+canvas.addEventListener('mouseup', () => {
+  dragging = null;
+  canvas.style.cursor = 'default';
+  renderLists();
+  draw();
+});
+
+canvas.addEventListener('dblclick', e => {
+  const r   = canvas.getBoundingClientRect();
+  const hit = hitTest(e.clientX - r.left, e.clientY - r.top);
+  if (!hit) return;
+  const name = prompt('Rename:', hit.item.name);
+  if (name) { hit.item.name = name; draw(); renderLists(); syncPanel(); }
+});
+
+// ─── Selection ────────────────────────────────────────────────────────────────
+function select(id, type) {
+  selectedId = id;
+  const panel = document.getElementById('rightPanel');
+  if (id) { panel.classList.add('open'); syncPanel(); }
+  else    { panel.classList.remove('open'); }
+  draw(); renderLists();
+}
+
+function getSelected() {
+  return beds.find(b => b.id === selectedId) || obstacles.find(o => o.id === selectedId);
+}
+
+function isBedSelected() {
+  return beds.some(b => b.id === selectedId);
+}
+
+function syncPanel() {
+  const item = getSelected();
+  if (!item) return;
+  const isBed = isBedSelected();
+
+  document.getElementById('panelTitle').textContent = isBed ? '🌿 Bed Details' : '⬛ Obstacle Details';
+  document.getElementById('propName').value = item.name;
+  document.getElementById('propW').value    = item.w;
+  document.getElementById('propH').value    = item.h;
+  document.getElementById('propX').value    = item.x;
+  document.getElementById('propY').value    = item.y;
+
+  document.getElementById('plantsSection').style.display = isBed ? '' : 'none';
+  document.getElementById('notesSection').style.display  = isBed ? '' : 'none';
+
+  if (isBed) {
+    document.getElementById('propNotes').value = item.notes || '';
+    renderPlantTags(item);
+  }
+}
+
+function syncPositionFields() {
+  const item = getSelected();
+  if (!item) return;
+  document.getElementById('propX').value = item.x;
+  document.getElementById('propY').value = item.y;
+}
+
+function updateProp(field, value) {
+  const item = getSelected();
+  if (!item) return;
+  item[field] = value;
+  draw(); renderLists();
+}
+
+// ─── Plants ───────────────────────────────────────────────────────────────────
+function renderPlantTags(bed) {
+  const c = document.getElementById('plantTags');
+  c.innerHTML = '';
+  (bed.plants || []).forEach(p => {
+    const s = document.createElement('span');
+    s.className = 'plant-tag';
+    s.innerHTML = `${p}<span class="rm" onclick="removePlant('${p}')"> ×</span>`;
+    c.appendChild(s);
+  });
+}
+
+function addPlant() {
+  const sel = document.getElementById('plantSelect');
+  const p = sel.value; if (!p) return;
+  const bed = beds.find(b => b.id === selectedId); if (!bed) return;
+  if (!bed.plants.includes(p)) { bed.plants.push(p); renderPlantTags(bed); draw(); }
+  sel.value = '';
+}
+
+function removePlant(plant) {
+  const bed = beds.find(b => b.id === selectedId); if (!bed) return;
+  bed.plants = bed.plants.filter(p => p !== plant);
+  renderPlantTags(bed); draw();
+}
+
+// ─── Add / Remove ─────────────────────────────────────────────────────────────
+function addBed() {
+  const id = 'bed' + nextId++;
+  const color = BED_COLORS[colorIdx++ % BED_COLORS.length];
+  beds.push({ id, name:'New Bed', x:2, y:2, w:4, h:8, color, plants:[], notes:'' });
+  renderLists(); draw(); select(id, 'bed');
+}
+
+function addObstacle() {
+  const name = prompt('Name this obstacle (e.g. 🌳 Tree, 🚪 Door, 🪑 Furniture):', '⬛ Obstacle');
+  if (!name) return;
+  const id = 'obs' + nextId++;
+  obstacles.push({ id, name, x:4, y:4, w:4, h:4, color:'#888' });
+  renderLists(); draw(); select(id, 'obstacle');
+}
+
+function deleteSelected() {
+  if (!selectedId) return;
+  if (!confirm('Remove this item?')) return;
+  beds      = beds.filter(b => b.id !== selectedId);
+  obstacles = obstacles.filter(o => o.id !== selectedId);
+  select(null);
+  renderLists(); draw();
+}
+
+// ─── Garden size ──────────────────────────────────────────────────────────────
+function applyGardenSize() {
+  garden.width  = parseFloat(document.getElementById('gardenWidth').value)  || 20;
+  garden.height = parseFloat(document.getElementById('gardenHeight').value) || 18;
+  initCanvas();
+}
+
+// ─── Suggest layout ───────────────────────────────────────────────────────────
+function suggestLayout() {
+  if (!confirm('Reset to the suggested perimeter layout?')) return;
+  beds = [
+    { id:'bed1', name:'Bed 1 — Top',    x:4,  y:0,  w:10, h:4, color:'#8B5E3C',
+      plants:['🍅 Tomatoes','🌶️ Hot Peppers'], notes:'Full sun. Stake tomatoes, cage peppers.' },
+    { id:'bed2', name:'Bed 2 — Left',   x:0,  y:4,  w:4,  h:8, color:'#6B4226',
+      plants:['🥒 Cucumbers','🌿 Basil'], notes:'Trellis on inner (yard-facing) edge for cucumbers.' },
+    { id:'bed3', name:'Bed 3 — Bottom', x:4,  y:14, w:8,  h:4, color:'#7A5230',
+      plants:['🥕 Carrots','🎃 Squash'], notes:'Squash can sprawl over the front edge.' },
+    { id:'bed4', name:'Bed 4 — Right',  x:14, y:6,  w:4,  h:6, color:'#5C3D1E',
+      plants:['🍓 Strawberries','🌿 Thyme'], notes:'Strawberries return every year via runners.' },
+  ];
+  select(null); renderLists(); draw();
+}
+
+// ─── Sidebar lists ────────────────────────────────────────────────────────────
+function renderLists() {
+  const bedList = document.getElementById('bedList');
+  bedList.innerHTML = '';
+  beds.forEach(b => {
+    const d = document.createElement('div');
+    d.className = 'list-item' + (b.id === selectedId ? ' selected' : '');
+    d.innerHTML = `
+      <div class="list-item-header">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="color-dot" style="background:${b.color}"></div>
+          <span class="list-item-name">${b.name}</span>
+        </div>
+        <span class="list-item-sub">${b.w}×${b.h} ft</span>
+      </div>
+      <div class="list-item-sub" style="margin-top:3px">${(b.plants||[]).join(', ') || '—'}</div>
+    `;
+    d.onclick = () => select(b.id, 'bed');
+    bedList.appendChild(d);
+  });
+
+  const obsList = document.getElementById('obstacleList');
+  obsList.innerHTML = '';
+  obstacles.forEach(o => {
+    const d = document.createElement('div');
+    d.className = 'list-item' + (o.id === selectedId ? ' selected' : '');
+    d.innerHTML = `
+      <div class="list-item-header">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="color-dot" style="background:${o.color}"></div>
+          <span class="list-item-name">${o.name}</span>
+        </div>
+        <span class="list-item-sub">${o.w}×${o.h} ft</span>
+      </div>
+    `;
+    d.onclick = () => select(o.id, 'obstacle');
+    obsList.appendChild(d);
+  });
+}
+
+// ─── Export / Print ───────────────────────────────────────────────────────────
+function exportImg() {
+  const a = document.createElement('a');
+  a.download = 'garden-layout.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+}
+
+function printPlan() {
+  const img = canvas.toDataURL('image/png');
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>Garden Plan</title>
+  <style>
+    body { font-family: sans-serif; padding: 24px; color: #222; }
+    h1 { color: #2d6a30; margin-bottom: 4px; }
+    img { max-width: 100%; border: 1px solid #ccc; border-radius: 4px; margin: 16px 0; }
+    table { border-collapse: collapse; width: 100%; margin-top: 8px; }
+    th, td { border: 1px solid #ccc; padding: 7px 10px; text-align: left; font-size: 13px; }
+    th { background: #e8f4e8; font-weight: 600; }
+    tr:nth-child(even) td { background: #f8fdf8; }
+    .footer { margin-top: 24px; font-size: 11px; color: #888; }
+  </style></head><body>
+  <h1>🌱 Garden Layout Plan</h1>
+  <p style="color:#555;font-size:13px">Garden: <strong>${garden.width} ft × ${garden.height} ft</strong></p>
+  <img src="${img}">
+  <h2 style="font-size:15px;margin-bottom:8px">Raised Bed Summary</h2>
+  <table>
+    <tr><th>Bed</th><th>Size</th><th>Position (from top-left)</th><th>Plants</th><th>Notes</th></tr>
+    ${beds.map(b => `<tr>
+      <td><strong>${b.name}</strong></td>
+      <td>${b.w} × ${b.h} ft</td>
+      <td>x = ${b.x} ft, y = ${b.y} ft</td>
+      <td>${(b.plants||[]).join(', ') || '—'}</td>
+      <td style="font-size:11px">${b.notes || '—'}</td>
+    </tr>`).join('')}
+  </table>
+  <div class="footer">Generated with 🌱 Garden Layout Planner</div>
+  </body></html>`);
+  win.print();
+}
+
+// ─── Plant Data ───────────────────────────────────────────────────────────────
+const PLANT_DATA = {
+  '🍅 Tomatoes':     { emoji:'🍅', sqft:4,    spacing:24, depthIn:12, sun:'Full',      water:'High',   trellis:false, notes:'Stake or cage. Deep roots — 12″+ soil.',         companions:['🌿 Basil','🧅 Onions'],     avoid:['🥦 Broccoli'] },
+  '🌶️ Hot Peppers': { emoji:'🌶️', sqft:1,    spacing:12, depthIn:8,  sun:'Full',      water:'Medium', trellis:false, notes:'Loves heat. Cage to support heavy fruits.',        companions:['🌿 Basil','🧅 Onions'],     avoid:[] },
+  '🥒 Cucumbers':   { emoji:'🥒', sqft:2,    spacing:12, depthIn:8,  sun:'Full',      water:'High',   trellis:true,  notes:'Trellis required. Keep soil evenly moist.',        companions:['🌿 Dill','🧅 Onions'],     avoid:['🌿 Rosemary'] },
+  '🥕 Carrots':     { emoji:'🥕', sqft:1,    spacing:3,  depthIn:12, sun:'Full',      water:'Medium', trellis:false, notes:'Needs 12″+ loose soil. Thin seedlings to 3″.',     companions:['🌿 Rosemary','🧅 Onions'], avoid:['🥦 Broccoli'] },
+  '🎃 Squash':      { emoji:'🎃', sqft:9,    spacing:36, depthIn:8,  sun:'Full',      water:'High',   trellis:false, notes:'Sprawling — place at bed edge to drape over.',     companions:['🌿 Dill'],                 avoid:[] },
+  '🥬 Lettuce':     { emoji:'🥬', sqft:0.25, spacing:6,  depthIn:6,  sun:'Full/Part', water:'Medium', trellis:false, notes:'4 per sq ft. Harvest outer leaves first.',         companions:['🥕 Carrots','🌿 Mint'],    avoid:[] },
+  '🌱 Spinach':     { emoji:'🌱', sqft:0.11, spacing:3,  depthIn:6,  sun:'Full/Part', water:'Medium', trellis:false, notes:'9 per sq ft. Great for cool seasons.',             companions:[],                          avoid:[] },
+  '🫛 Green Beans': { emoji:'🫛', sqft:1,    spacing:6,  depthIn:8,  sun:'Full',      water:'Medium', trellis:false, notes:'Bush variety needs no support.',                   companions:['🥕 Carrots'],              avoid:['🧅 Onions'] },
+  '🧅 Onions':      { emoji:'🧅', sqft:0.25, spacing:4,  depthIn:8,  sun:'Full',      water:'Low',    trellis:false, notes:'16 per sq ft. Plant sets 1″ deep.',                companions:['🍅 Tomatoes','🌶️ Hot Peppers'], avoid:['🫛 Green Beans'] },
+  '🥦 Broccoli':    { emoji:'🥦', sqft:1,    spacing:12, depthIn:8,  sun:'Full',      water:'Medium', trellis:false, notes:'1 plant per sq ft. Watch for caterpillars.',       companions:[],                          avoid:['🍅 Tomatoes','🌶️ Hot Peppers'] },
+  '🌿 Basil':       { emoji:'🌿', sqft:1,    spacing:12, depthIn:6,  sun:'Full',      water:'Medium', trellis:false, notes:'Pinch flowers to extend harvest.',                  companions:['🍅 Tomatoes','🌶️ Hot Peppers'], avoid:['🌿 Dill'] },
+  '🌿 Parsley':     { emoji:'🌿', sqft:0.25, spacing:6,  depthIn:6,  sun:'Full/Part', water:'Medium', trellis:false, notes:'4 per sq ft. Biennial — replant each year.',       companions:['🍅 Tomatoes'],             avoid:[] },
+  '🌿 Cilantro':    { emoji:'🌿', sqft:0.25, spacing:6,  depthIn:6,  sun:'Full/Part', water:'Medium', trellis:false, notes:'Bolts in heat. Succession-plant every 3 weeks.',   companions:[],                          avoid:[] },
+  '🌿 Thyme':       { emoji:'🌿', sqft:1,    spacing:12, depthIn:6,  sun:'Full',      water:'Low',    trellis:false, notes:'Drought-tolerant once established.',                companions:['🍓 Strawberries','🍅 Tomatoes'], avoid:[] },
+  '🌿 Oregano':     { emoji:'🌿', sqft:1,    spacing:12, depthIn:6,  sun:'Full',      water:'Low',    trellis:false, notes:'Spreads aggressively. Consider a sunken pot.',     companions:['🌶️ Hot Peppers'],          avoid:[] },
+  '🌿 Mint':        { emoji:'🌿', sqft:1,    spacing:12, depthIn:6,  sun:'Full/Part', water:'Medium', trellis:false, notes:'Very invasive — sink a buried pot into the bed.',   companions:['🥬 Lettuce'],              avoid:[] },
+  '🌿 Rosemary':    { emoji:'🌿', sqft:4,    spacing:24, depthIn:8,  sun:'Full',      water:'Low',    trellis:false, notes:'Perennial. Great corner or border plant.',          companions:['🥕 Carrots'],             avoid:['🥒 Cucumbers'] },
+  '🌿 Dill':        { emoji:'🌿', sqft:1,    spacing:6,  depthIn:8,  sun:'Full',      water:'Low',    trellis:false, notes:"Tall — plant at north end so it doesn't shade.",    companions:['🥒 Cucumbers','🎃 Squash'],avoid:['🌿 Basil'] },
+  '🍓 Strawberries':{ emoji:'🍓', sqft:1,    spacing:12, depthIn:6,  sun:'Full',      water:'Medium', trellis:false, notes:'Send runners yearly. Refresh plants every 3 years.',companions:['🌿 Thyme'],               avoid:['🥦 Broccoli'] },
+  '🍈 Melon':       { emoji:'🍈', sqft:9,    spacing:36, depthIn:8,  sun:'Full',      water:'High',   trellis:false, notes:'Needs full sun and a long warm season.',            companions:['🌿 Dill'],                avoid:[] },
+};
+
+// ─── Save / Load JSON ─────────────────────────────────────────────────────────
+function saveJSON() {
+  const plan = {
+    version: 1,
+    garden: { ...garden },
+    beds: beds.map(b => ({ ...b, plants: [...(b.plants || [])] })),
+    obstacles: obstacles.map(o => ({ ...o })),
+    savedAt: new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(plan, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'garden-plan.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function loadJSON() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const plan = JSON.parse(ev.target.result);
+        if (plan.garden) {
+          Object.assign(garden, plan.garden);
+          document.getElementById('gardenWidth').value  = garden.width;
+          document.getElementById('gardenHeight').value = garden.height;
+        }
+        if (plan.beds)      beds      = plan.beds;
+        if (plan.obstacles) obstacles = plan.obstacles;
+        select(null); renderLists(); initCanvas();
+        alert('Plan loaded successfully!');
+      } catch { alert('Could not read plan file. Make sure it was saved from this app.'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ─── Report Modal ─────────────────────────────────────────────────────────────
+let activeTab = 'build';
+
+function openReport() {
+  if (!beds.length) { alert('Add at least one bed first.'); return; }
+  activeTab = 'build';
+  document.getElementById('tab-build').classList.add('active');
+  document.getElementById('tab-plant').classList.remove('active');
+  document.getElementById('reportBody').innerHTML = generateBuildHTML();
+  document.getElementById('reportModal').style.display = 'flex';
+}
+
+function closeReport() {
+  document.getElementById('reportModal').style.display = 'none';
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('tab-build').classList.toggle('active', tab === 'build');
+  document.getElementById('tab-plant').classList.toggle('active', tab === 'plant');
+  document.getElementById('reportBody').innerHTML =
+    tab === 'build' ? generateBuildHTML() : generatePlantsHTML();
+}
+
+// ─── Bed Builder ──────────────────────────────────────────────────────────────
+function calcMaterials(bed) {
+  const W = bed.w, L = bed.h;
+  const BOARD_LENGTHS = [6, 8, 10, 12, 14, 16];
+  const nearestLen = dim => BOARD_LENGTHS.find(l => l >= dim) || 16;
+  const boardCost  = len => len <= 6 ? 7 : len <= 8 ? 9 : len <= 10 ? 11 : len <= 12 ? 13 : 16;
+
+  const sideLen  = nearestLen(L);
+  const endLen   = nearestLen(W);
+  const sideCost = boardCost(sideLen);
+  const endCost  = boardCost(endLen);
+
+  const soilCuFt = W * L * (8 / 12);
+  const soilCuYd = soilCuFt / 27;
+
+  const lumberCost = (2 * sideCost) + (2 * endCost);
+  const postCost   = 4 * 4;   // ~$4 per cut corner post
+  const screwCost  = 9;       // 1 lb box deck screws
+  const soilCost   = Math.round(soilCuYd * 38);
+  const total      = lumberCost + postCost + screwCost + soilCost;
+
+  return { W, L, sideLen, endLen, sideCost, endCost,
+    lumberCost, postCost, screwCost,
+    soilCuFt: soilCuFt.toFixed(1), soilCuYd: soilCuYd.toFixed(2),
+    soilCost, total };
+}
+
+function generateBuildHTML() {
+  let grandTotal = 0;
+
+  const bedSections = beds.map(bed => {
+    const m = calcMaterials(bed);
+    grandTotal += m.total;
+    const sqft = bed.w * bed.h;
+
+    return `
+    <div class="report-bed">
+      <div class="report-bed-header">
+        <h3>${bed.name}</h3>
+        <span>${bed.w} ft wide × ${bed.h} ft long × 8 in deep · ${sqft} sq ft</span>
+      </div>
+      <div class="report-bed-body">
+        <div class="report-section">
+          <h4>🧱 Materials List</h4>
+          <table class="materials-table">
+            <tr><th>Item</th><th>Qty</th><th>Size / Notes</th><th class="cost">Est. Cost</th></tr>
+            <tr>
+              <td>2×8 Side Board</td><td>2</td>
+              <td>${m.sideLen} ft (for ${bed.h} ft sides${m.sideLen > bed.h ? ` — ${(m.sideLen - bed.h).toFixed(1)} ft waste` : ''})</td>
+              <td class="cost">$${m.sideCost * 2}</td>
+            </tr>
+            <tr>
+              <td>2×8 End Board</td><td>2</td>
+              <td>${m.endLen} ft (for ${bed.w} ft ends${m.endLen > bed.w ? ` — ${(m.endLen - bed.w).toFixed(1)} ft waste` : ''})</td>
+              <td class="cost">$${m.endCost * 2}</td>
+            </tr>
+            <tr>
+              <td>4×4 Corner Post</td><td>4</td>
+              <td>Cut to 10 in from a 4×4×8 post</td>
+              <td class="cost">$${m.postCost}</td>
+            </tr>
+            <tr>
+              <td>3 in Deck Screws</td><td>1 box</td>
+              <td>Galvanized, 1 lb box (~100 screws)</td>
+              <td class="cost">$${m.screwCost}</td>
+            </tr>
+            <tr class="soil-row">
+              <td>Garden Soil / Mix</td><td>${m.soilCuYd} yd³</td>
+              <td>${m.soilCuFt} cu ft needed (bulk or ~${Math.ceil(m.soilCuFt / 2)} bags × 2 cu ft)</td>
+              <td class="cost">≈$${m.soilCost}</td>
+            </tr>
+            <tr class="total-row">
+              <td colspan="3"><strong>Estimated Total</strong></td>
+              <td class="cost"><strong>$${m.total}</strong></td>
+            </tr>
+          </table>
+          <p style="font-size:11px;color:#888;margin-top:6px">Prices are approximate Home Depot / Lowe's averages. Soil cost varies widely by source (bulk vs. bags).</p>
+        </div>
+
+        <div class="report-section">
+          <h4>✂️ Cut List</h4>
+          <ul class="cut-list">
+            <li>2 × side boards: <strong>${bed.h} ft each</strong> — cut from ${m.sideLen} ft 2×8 boards</li>
+            <li>2 × end boards: <strong>${bed.w} ft each</strong> — cut from ${m.endLen} ft 2×8 boards</li>
+            <li>4 × corner posts: <strong>10 in each</strong> — rip from a single 4×4×8 post</li>
+          </ul>
+        </div>
+
+        <div class="report-section">
+          <h4>🔨 Assembly Steps</h4>
+          <ol class="steps-list">
+            <li>Mark the bed footprint with stakes. Check square: diagonals must be equal.</li>
+            <li>Cut lumber to length per the cut list above using a circular saw or miter saw.</li>
+            <li>Stand two side boards upright and clamp a 10 in corner post flush at each end.</li>
+            <li>Pre-drill 3 holes through the board into the post; drive 3 in galvanized deck screws.</li>
+            <li>Attach the two end boards to the remaining post faces the same way. Re-check square.</li>
+            <li>Set the frame in position, level with shims if needed. Fill with ${m.soilCuFt} cu ft (${m.soilCuYd} yd³) of quality garden mix, rake level, and water before planting.</li>
+          </ol>
+        </div>
+
+        ${bed.notes ? `<div class="report-section"><h4>📝 Bed Notes</h4><p style="font-size:12px;color:#4a6b4b">${bed.notes}</p></div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const totalSqft = beds.reduce((s, b) => s + b.w * b.h, 0);
+  const summary = `
+  <div class="report-summary">
+    <h3>📐 Project Summary</h3>
+    <div class="summary-grid">
+      <div class="summary-stat"><div class="val">${beds.length}</div><div class="lbl">Beds to build</div></div>
+      <div class="summary-stat"><div class="val">${totalSqft}</div><div class="lbl">Total sq ft</div></div>
+      <div class="summary-stat"><div class="val">$${grandTotal}</div><div class="lbl">Est. total cost</div></div>
+    </div>
+  </div>`;
+
+  return summary + bedSections;
+}
+
+// ─── Plant Organizer ──────────────────────────────────────────────────────────
+function buildPlantGrid(bed) {
+  const W = Math.max(1, Math.floor(bed.w));
+  const L = Math.max(1, Math.floor(bed.h));
+  const cells = Array.from({ length: L }, () => Array(W).fill('·'));
+  const legend = [];
+
+  (bed.plants || []).forEach(pName => {
+    const pd = PLANT_DATA[pName];
+    if (!pd) return;
+
+    const emoji     = pd.emoji;
+    const perSqft   = pd.sqft < 1 ? Math.round(1 / pd.sqft) : 1;
+    const cellsEach = pd.sqft >= 1 ? Math.ceil(pd.sqft) : 1;
+    let placed = 0;
+
+    for (let row = 0; row < L && placed < W * L; row++) {
+      for (let col = 0; col < W; col++) {
+        if (cells[row][col] !== '·') continue;
+        cells[row][col] = emoji;
+        placed++;
+        // If plant needs multiple sq ft, mark adjacent cells too (simple: mark next cols)
+        for (let k = 1; k < cellsEach && col + k < W; k++) {
+          if (cells[row][col + k] === '·') { cells[row][col + k] = emoji; placed++; }
+        }
+        col += cellsEach - 1; // advance past used cells
+        break; // one plant placed per sq-ft row pass
+      }
+    }
+    legend.push({ emoji, name: pName });
+  });
+
+  const gridStr = cells.map(row => row.join(' ')).join('\n');
+  return { gridStr, legend };
+}
+
+function generatePlantsHTML() {
+  const bedSections = beds.map(bed => {
+    const plants  = bed.plants || [];
+    const sqftTotal = bed.w * bed.h;
+
+    if (!plants.length) {
+      return `<div class="report-bed">
+        <div class="report-bed-header"><h3>${bed.name}</h3><span>${bed.w}×${bed.h} ft</span></div>
+        <div class="report-bed-body"><p style="color:#888;font-size:13px;padding:4px 0">No plants assigned yet. Select this bed on the canvas and add plants in the right panel.</p></div>
+      </div>`;
+    }
+
+    // Companion & conflict checks
+    const companionAlerts = [];
+    const avoidAlerts     = [];
+    plants.forEach(p => {
+      const pd = PLANT_DATA[p]; if (!pd) return;
+      pd.companions.forEach(c => { if (plants.includes(c)) companionAlerts.push(`${p} + ${c}`); });
+      pd.avoid.forEach(a => { if (plants.includes(a)) avoidAlerts.push(`${p} conflicts with ${a}`); });
+    });
+
+    const alertsHTML = avoidAlerts.length
+      ? `<div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:6px;padding:9px 12px;margin-bottom:12px;font-size:12px">
+          ⚠️ <strong>Conflicts detected:</strong> ${[...new Set(avoidAlerts)].join(' · ')}
+        </div>` : '';
+    const companionsHTML = [...new Set(companionAlerts)].length
+      ? `<div style="background:#e8f4e8;border:1px solid #b8d8b8;border-radius:6px;padding:9px 12px;margin-bottom:12px;font-size:12px">
+          ✅ <strong>Good companions:</strong> ${[...new Set(companionAlerts)].join(' · ')}
+        </div>` : '';
+
+    // Grid
+    const { gridStr, legend } = buildPlantGrid(bed);
+    const gridLegend = legend.map(l =>
+      `<span class="grid-legend-item">${l.emoji} ${l.name.replace(/^\S+\s/, '')}</span>`
+    ).join('') + `<span class="grid-legend-item">· empty</span>`;
+
+    // Per-plant detail rows
+    const plantRows = plants.map(pName => {
+      const pd = PLANT_DATA[pName]; if (!pd) return '';
+      const perSqft    = pd.sqft < 1 ? Math.round(1 / pd.sqft) : null;
+      const countLabel = perSqft
+        ? `~${Math.round(sqftTotal * perSqft)} plants (${perSqft}/sq ft)`
+        : `~${Math.floor(sqftTotal / pd.sqft)} plants`;
+      const trellisTag  = pd.trellis ? `<span class="pill warn">🪝 Trellis needed</span>` : '';
+      const cTags = pd.companions.filter(c => plants.includes(c)).map(c => `<span class="pill">✅ ${c}</span>`).join('');
+      const aTags = pd.avoid.filter(a => plants.includes(a)).map(a => `<span class="pill bad">⚠️ ${a}</span>`).join('');
+
+      return `<div class="plant-row">
+        <div class="plant-emoji">${pd.emoji}</div>
+        <div class="plant-info">
+          <h5>${pName}</h5>
+          <div class="plant-meta">
+            <span class="pill">📐 ${pd.sqft >= 1 ? pd.sqft + ' sq ft/plant' : perSqft + '/sq ft'}</span>
+            <span class="pill">↔ ${pd.spacing}" apart</span>
+            <span class="pill">⬇ ${pd.depthIn}" soil</span>
+            <span class="pill">☀ ${pd.sun}</span>
+            <span class="pill">💧 ${pd.water}</span>
+            ${trellisTag}
+          </div>
+          ${(cTags || aTags) ? `<div class="plant-meta">${cTags}${aTags}</div>` : ''}
+          <div class="plant-notes">${countLabel} in this ${sqftTotal} sq ft bed. ${pd.notes}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="report-bed">
+      <div class="report-bed-header">
+        <h3>${bed.name}</h3>
+        <span>${bed.w} ft × ${bed.h} ft · ${sqftTotal} sq ft</span>
+      </div>
+      <div class="report-bed-body">
+        ${alertsHTML}${companionsHTML}
+        <div class="report-section">
+          <h4>🗺 Square-Foot Layout (top view, 1 cell = 1 sq ft)</h4>
+          <div class="grid-legend">${gridLegend}</div>
+          <div class="plant-grid">${gridStr}</div>
+          <p style="font-size:10px;color:#888;margin-top:4px">${bed.w} cols × ${bed.h} rows = ${sqftTotal} sq ft. Layout is approximate — adjust spacing in your garden.</p>
+        </div>
+        <div class="report-section">
+          <h4>🌿 Plant Details</h4>
+          ${plantRows}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const uniquePlants = [...new Set(beds.flatMap(b => b.plants || []))];
+  const summary = `
+  <div class="report-summary">
+    <h3>🌱 Planting Summary</h3>
+    <div class="summary-grid">
+      <div class="summary-stat"><div class="val">${beds.length}</div><div class="lbl">Beds</div></div>
+      <div class="summary-stat"><div class="val">${uniquePlants.length}</div><div class="lbl">Unique plants</div></div>
+      <div class="summary-stat"><div class="val">${beds.reduce((s,b)=>s+b.w*b.h,0)}</div><div class="lbl">Sq ft total</div></div>
+    </div>
+  </div>`;
+
+  return summary + bedSections;
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+initCanvas();
+renderLists();
+</script>
+</body>
+</html>
