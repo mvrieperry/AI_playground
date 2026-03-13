@@ -420,6 +420,7 @@
           </optgroup>
           <optgroup label="Herbs">
             <option>🌿 Basil</option>
+            <option>🌿 Chives</option>
             <option>🌿 Parsley</option>
             <option>🌿 Cilantro</option>
             <option>🌿 Thyme</option>
@@ -427,6 +428,9 @@
             <option>🌿 Mint</option>
             <option>🌿 Rosemary</option>
             <option>🌿 Dill</option>
+          </optgroup>
+          <optgroup label="Flowers">
+            <option>🌼 Marigolds</option>
           </optgroup>
           <optgroup label="Fruit">
             <option>🍓 Strawberries</option>
@@ -934,7 +938,7 @@ function printPlan() {
 // ─── Plant Data ───────────────────────────────────────────────────────────────
 const PLANT_DATA = {
   '🍅 Tomatoes':     { emoji:'🍅', sqft:4,    spacing:24, depthIn:12, sun:'Full',      water:'High',   trellis:false, notes:'Stake or cage. Deep roots — 12″+ soil.',         companions:['🌿 Basil','🧅 Onions'],     avoid:['🥦 Broccoli'] },
-  '🌶️ Hot Peppers': { emoji:'🌶️', sqft:1,    spacing:12, depthIn:8,  sun:'Full',      water:'Medium', trellis:false, notes:'Loves heat. Cage to support heavy fruits.',        companions:['🌿 Basil','🧅 Onions'],     avoid:[] },
+  '🌶️ Hot Peppers': { emoji:'🌶️', sqft:1,    spacing:18, depthIn:8,  sun:'Full',      water:'Medium', trellis:false, notes:'Loves heat. Cage to support heavy fruits.',        companions:['🌿 Basil','🌿 Chives','🌼 Marigolds','🌿 Oregano','🥕 Carrots'], avoid:['🥦 Broccoli','🫛 Green Beans'] },
   '🥒 Cucumbers':   { emoji:'🥒', sqft:2,    spacing:12, depthIn:8,  sun:'Full',      water:'High',   trellis:true,  notes:'Trellis required. Keep soil evenly moist.',        companions:['🌿 Dill','🧅 Onions'],     avoid:['🌿 Rosemary'] },
   '🥕 Carrots':     { emoji:'🥕', sqft:1,    spacing:3,  depthIn:12, sun:'Full',      water:'Medium', trellis:false, notes:'Needs 12″+ loose soil. Thin seedlings to 3″.',     companions:['🌿 Rosemary','🧅 Onions'], avoid:['🥦 Broccoli'] },
   '🎃 Squash':      { emoji:'🎃', sqft:9,    spacing:36, depthIn:8,  sun:'Full',      water:'High',   trellis:false, notes:'Sprawling — place at bed edge to drape over.',     companions:['🌿 Dill'],                 avoid:[] },
@@ -950,7 +954,9 @@ const PLANT_DATA = {
   '🌿 Oregano':     { emoji:'🌿', sqft:1,    spacing:12, depthIn:6,  sun:'Full',      water:'Low',    trellis:false, notes:'Spreads aggressively. Consider a sunken pot.',     companions:['🌶️ Hot Peppers'],          avoid:[] },
   '🌿 Mint':        { emoji:'🌿', sqft:1,    spacing:12, depthIn:6,  sun:'Full/Part', water:'Medium', trellis:false, notes:'Very invasive — sink a buried pot into the bed.',   companions:['🥬 Lettuce'],              avoid:[] },
   '🌿 Rosemary':    { emoji:'🌿', sqft:4,    spacing:24, depthIn:8,  sun:'Full',      water:'Low',    trellis:false, notes:'Perennial. Great corner or border plant.',          companions:['🥕 Carrots'],             avoid:['🥒 Cucumbers'] },
+  '🌿 Chives':      { emoji:'🌿', sqft:0.25, spacing:6,  depthIn:6,  sun:'Full',      water:'Low',    trellis:false, notes:'Repels aphids & spider mites. Divide clumps every 3 years.', companions:['🌶️ Hot Peppers','🍅 Tomatoes','🥕 Carrots'], avoid:[] },
   '🌿 Dill':        { emoji:'🌿', sqft:1,    spacing:6,  depthIn:8,  sun:'Full',      water:'Low',    trellis:false, notes:"Tall — plant at north end so it doesn't shade.",    companions:['🥒 Cucumbers','🎃 Squash'],avoid:['🌿 Basil'] },
+  '🌼 Marigolds':   { emoji:'🌼', sqft:0.25, spacing:6,  depthIn:6,  sun:'Full',      water:'Low',    trellis:false, notes:'Plant at bed corners/edges. Deters nematodes, aphids & whiteflies.', companions:['🌶️ Hot Peppers','🍅 Tomatoes','🥕 Carrots'], avoid:[] },
   '🍓 Strawberries':{ emoji:'🍓', sqft:1,    spacing:12, depthIn:6,  sun:'Full',      water:'Medium', trellis:false, notes:'Send runners yearly. Refresh plants every 3 years.',companions:['🌿 Thyme'],               avoid:['🥦 Broccoli'] },
   '🍈 Melon':       { emoji:'🍈', sqft:9,    spacing:36, depthIn:8,  sun:'Full',      water:'High',   trellis:false, notes:'Needs full sun and a long warm season.',            companions:['🌿 Dill'],                avoid:[] },
 };
