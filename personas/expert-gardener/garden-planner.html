@@ -1439,6 +1439,36 @@ function generateShoppingHTML() {
           <td class="cost"><strong>$${lumberCost}</strong></td>
         </tr>
       </table>
+
+      <details style="margin-top:14px">
+        <summary style="cursor:pointer;font-size:13px;font-weight:600;color:#2d6a30;user-select:none;padding:6px 0">
+          🛒 Store shopping list (totals by board size)
+        </summary>
+        <table class="materials-table" style="margin-top:8px">
+          <tr><th>Board</th><th>Qty to buy</th><th class="cost">Unit cost</th><th class="cost">Subtotal</th></tr>
+          ${(() => {
+            const tally = {};
+            bins.forEach(b => {
+              const key = `${b.boardSize}×${b.boardLen}`;
+              if (!tally[key]) tally[key] = { count: 0, cost: b.cost };
+              tally[key].count++;
+            });
+            return Object.entries(tally)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([key, { count, cost }]) => `
+              <tr>
+                <td><strong>${key}</strong></td>
+                <td>${count}</td>
+                <td class="cost">$${cost}</td>
+                <td class="cost"><strong>$${count * cost}</strong></td>
+              </tr>`).join('');
+          })()}
+          <tr class="total-row">
+            <td colspan="3"><strong>Lumber total</strong></td>
+            <td class="cost"><strong>$${lumberCost}</strong></td>
+          </tr>
+        </table>
+      </details>
     </div>
   </div>
 
