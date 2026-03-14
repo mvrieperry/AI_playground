@@ -291,6 +291,25 @@
     .igrid-cell.empty { color: rgba(255,255,255,0.2); font-size: 11px; cursor: default; }
     .igrid-cell.dragging { opacity: 0.35; border-color: #ff9f0a; }
     .igrid-cell.drag-over { background: rgba(255,159,10,0.3); border-color: #ff9f0a; border-style: dashed; }
+    .igrid-cell.empty { cursor: crosshair; } /* empty cells accept palette drops */
+    .igrid-palette {
+      display: flex; align-items: center; flex-wrap: wrap;
+      gap: 4px; margin-top: 6px; padding: 6px 10px;
+      background: rgba(255,255,255,0.05); border-radius: 6px;
+      border: 1px dashed rgba(255,255,255,0.15);
+    }
+    .igrid-palette-item {
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; border-radius: 4px;
+      background: rgba(255,255,255,0.1);
+      border: 1.5px solid rgba(255,255,255,0.2);
+      cursor: grab; user-select: none;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .igrid-palette-item:hover { background: rgba(255,159,10,0.2); border-color: #ff9f0a; }
+    .igrid-palette-item.dragging { opacity: 0.35; }
+    .igrid-palette-item.clear-cell { font-size: 13px; color: #aaa; }
 
     .report-summary {
       background: #e8f4e8; border: 1px solid #b8d8b8; border-radius: 8px;
@@ -1201,23 +1220,29 @@ function initPlantGrid(bed) {
   if (bed.plantGrid) return;
   const W = Math.max(1, Math.floor(bed.w));
   const L = Math.max(1, Math.floor(bed.h));
+  const totalCells = W * L;
   const cells = Array.from({ length: L }, () => Array(W).fill(null));
 
-  (bed.plants || []).forEach(pName => {
-    const pd = PLANT_DATA[pName]; if (!pd) return;
-    const cellsEach = Math.max(1, Math.ceil(pd.sqft));
-    for (let row = 0; row < L; row++) {
-      for (let col = 0; col < W; col++) {
-        if (cells[row][col] !== null) continue;
-        cells[row][col] = pd.emoji;
-        for (let k = 1; k < cellsEach && col + k < W; k++) {
-          if (cells[row][col + k] === null) cells[row][col + k] = pd.emoji;
-        }
-        col += cellsEach - 1;
-        break;
+  const plants = (bed.plants || []).filter(p => PLANT_DATA[p]);
+  if (plants.length) {
+    // Build a flat list of emojis: each plant gets an even share of cells
+    const flat = [];
+    const sharePerPlant = Math.max(1, Math.round(totalCells / plants.length));
+    plants.forEach(pName => {
+      const pd = PLANT_DATA[pName];
+      const cellsEach = Math.max(1, Math.ceil(pd.sqft));
+      const instances = Math.max(1, Math.round(sharePerPlant / cellsEach));
+      for (let i = 0; i < instances * cellsEach; i++) flat.push(pd.emoji);
+    });
+    // Fill grid left-to-right, top-to-bottom
+    let idx = 0;
+    outer: for (let r = 0; r < L; r++) {
+      for (let c = 0; c < W; c++) {
+        if (idx >= flat.length) break outer;
+        cells[r][c] = flat[idx++];
       }
     }
-  });
+  }
   bed.plantGrid = cells;
 }
 
@@ -1232,7 +1257,7 @@ function resetPlantGrid(bedId) {
 function igridCellHTML(cell, bedId, ri, ci) {
   const hasPlant = cell !== null;
   return `<div class="igrid-cell ${hasPlant ? 'has-plant' : 'empty'}"
-    ${hasPlant ? 'draggable="true"' : ''}
+    draggable="${hasPlant ? 'true' : 'false'}"
     data-bed="${bedId}" data-row="${ri}" data-col="${ci}"
     ondragstart="igridDragStart(event)"
     ondragover="igridDragOver(event)"
@@ -1251,13 +1276,31 @@ function renderInteractiveGrid(bed) {
     const pd = PLANT_DATA[pName]; if (!pd) return '';
     return `<span class="grid-legend-item">${pd.emoji} ${pName.replace(/^\S+\s/, '')}</span>`;
   }).join('') + `<span class="grid-legend-item" style="opacity:0.5">· empty</span>`;
+
+  // Plant palette — drag from here to paint individual cells
+  const paletteItems = (bed.plants || []).map(pName => {
+    const pd = PLANT_DATA[pName]; if (!pd) return '';
+    return `<div class="igrid-palette-item" draggable="true"
+      data-bed="${bed.id}" data-emoji="${pd.emoji}" data-palette="true"
+      ondragstart="igridDragStart(event)" ondragend="igridDragEnd(event)"
+      title="${pName}">${pd.emoji}</div>`;
+  }).join('') +
+  `<div class="igrid-palette-item clear-cell" draggable="true"
+    data-bed="${bed.id}" data-emoji="" data-palette="true"
+    ondragstart="igridDragStart(event)" ondragend="igridDragEnd(event)"
+    title="Erase cell">✕</div>`;
+
   return `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
       <div class="grid-legend" style="margin:0">${legend}</div>
       <button class="btn btn-sm" style="font-size:11px;padding:3px 10px;flex-shrink:0" onclick="resetPlantGrid('${bed.id}')">↺ Reset layout</button>
     </div>
     <div class="igrid" id="igrid-${bed.id}" style="grid-template-columns:repeat(${W},38px)">${cells}</div>
-    <p style="font-size:10px;color:#888;margin-top:4px">Drag emojis to rearrange · ${bed.w} cols × ${bed.h} rows · 1 cell = 1 sq ft</p>`;
+    <div class="igrid-palette">
+      <span style="font-size:10px;color:#aaa;margin-right:4px;flex-shrink:0">🎨 Paint:</span>
+      ${paletteItems}
+    </div>
+    <p style="font-size:10px;color:#888;margin-top:4px">Drag grid cells to swap · drag from palette to paint · ${bed.w} cols × ${bed.h} rows · 1 cell = 1 sq ft</p>`;
 }
 
 function rerenderIGrid(bedId) {
@@ -1272,9 +1315,14 @@ function rerenderIGrid(bedId) {
 }
 
 function igridDragStart(e) {
-  igridDragSrc = { bedId: e.currentTarget.dataset.bed, row: +e.currentTarget.dataset.row, col: +e.currentTarget.dataset.col };
+  const el = e.currentTarget;
+  if (el.dataset.palette === 'true') {
+    igridDragSrc = { bedId: el.dataset.bed, emoji: el.dataset.emoji, fromPalette: true };
+  } else {
+    igridDragSrc = { bedId: el.dataset.bed, row: +el.dataset.row, col: +el.dataset.col, fromPalette: false };
+  }
   e.dataTransfer.effectAllowed = 'move';
-  e.currentTarget.classList.add('dragging');
+  el.classList.add('dragging');
 }
 
 function igridDragOver(e) {
@@ -1294,15 +1342,24 @@ function igridDrop(e) {
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
   if (!igridDragSrc) return;
-  const dst = { bedId: e.currentTarget.dataset.bed, row: +e.currentTarget.dataset.row, col: +e.currentTarget.dataset.col };
+  const dstEl = e.currentTarget;
+  // Only accept drops on grid cells (not on palette items)
+  if (!dstEl.dataset.row) return;
+  const dst = { bedId: dstEl.dataset.bed, row: +dstEl.dataset.row, col: +dstEl.dataset.col };
   if (igridDragSrc.bedId !== dst.bedId) return;
-  if (igridDragSrc.row === dst.row && igridDragSrc.col === dst.col) return;
   const bed = beds.find(b => b.id === igridDragSrc.bedId);
   if (!bed?.plantGrid) return;
-  // Swap cells
-  const tmp = bed.plantGrid[igridDragSrc.row][igridDragSrc.col];
-  bed.plantGrid[igridDragSrc.row][igridDragSrc.col] = bed.plantGrid[dst.row][dst.col];
-  bed.plantGrid[dst.row][dst.col] = tmp;
+
+  if (igridDragSrc.fromPalette) {
+    // Paint: set cell to palette emoji (empty string = erase)
+    bed.plantGrid[dst.row][dst.col] = igridDragSrc.emoji || null;
+  } else {
+    // Swap two grid cells
+    if (igridDragSrc.row === dst.row && igridDragSrc.col === dst.col) return;
+    const tmp = bed.plantGrid[igridDragSrc.row][igridDragSrc.col];
+    bed.plantGrid[igridDragSrc.row][igridDragSrc.col] = bed.plantGrid[dst.row][dst.col];
+    bed.plantGrid[dst.row][dst.col] = tmp;
+  }
   igridDragSrc = null;
   rerenderIGrid(bed.id);
 }
