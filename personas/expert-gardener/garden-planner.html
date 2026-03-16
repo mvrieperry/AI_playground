@@ -1207,8 +1207,8 @@ function calcMaterials(bed) {
 
 function generateBuildHTML() {
   let grandTotal = 0;
-  const raisedBeds  = beds.filter(b => b.type === 'raised');
-  const nonRaised   = beds.filter(b => b.type !== 'raised');
+  const raisedBeds  = beds.filter(b => b.type !== 'ground' && b.type !== 'pot');
+  const nonRaised   = beds.filter(b => b.type === 'ground' || b.type === 'pot');
 
   const bedSections = raisedBeds.map(bed => {
     const m = calcMaterials(bed);
@@ -1556,7 +1556,7 @@ function generateShoppingHTML() {
 
   // Collect every cut piece needed across raised beds only (ground areas need no lumber)
   const pieces = [];
-  beds.filter(b => b.type === 'raised').forEach(bed => {
+  beds.filter(b => b.type !== 'ground' && b.type !== 'pot').forEach(bed => {
     const m = calcMaterials(bed);
     for (let r = 0; r < m.runs; r++) {
       pieces.push({ len: bed.h, label: `${bed.name} side`, bedName: bed.name, boardSize: m.boardSize });
