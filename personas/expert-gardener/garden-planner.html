@@ -675,15 +675,25 @@ function drawBed(b) {
       ctx.beginPath(); ctx.arc(cx, cy, r + 3, 0, Math.PI*2);
       ctx.strokeStyle = '#ff9f0a'; ctx.lineWidth = 3; ctx.stroke();
     }
-    // Labels
+    // Name + diameter labels
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const hasPlants = b.plants && b.plants.length;
     ctx.font = `bold ${clamp(9, 12, r / 2)}px sans-serif`;
-    ctx.fillText(b.name, cx, cy - r * 0.18);
+    ctx.fillText(b.name, cx, hasPlants ? cy - r * 0.45 : cy - r * 0.18);
     ctx.font = `${clamp(8, 10, r / 3)}px sans-serif`;
     ctx.globalAlpha = 0.75;
-    ctx.fillText(`${b.diam * 12}"`, cx, cy + r * 0.32);
+    ctx.fillText(`${b.diam * 12}"`, cx, hasPlants ? cy - r * 0.18 : cy + r * 0.32);
     ctx.globalAlpha = 1;
+    // Plant emojis (up to 2 inside the circle)
+    if (hasPlants && r > 20) {
+      ctx.font = `${clamp(9, 11, r / 3)}px sans-serif`;
+      b.plants.slice(0, 2).forEach((p, i) => {
+        ctx.globalAlpha = 0.88;
+        ctx.fillText(p, cx, cy + r * 0.2 + i * 14);
+      });
+      ctx.globalAlpha = 1;
+    }
     ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
     return;
   }
@@ -1207,8 +1217,8 @@ function calcMaterials(bed) {
 
 function generateBuildHTML() {
   let grandTotal = 0;
-  const raisedBeds  = beds.filter(b => b.type === 'raised');
-  const nonRaised   = beds.filter(b => b.type !== 'raised');
+  const raisedBeds  = beds.filter(b => b.type !== 'ground' && b.type !== 'pot');
+  const nonRaised   = beds.filter(b => b.type === 'ground' || b.type === 'pot');
 
   const bedSections = raisedBeds.map(bed => {
     const m = calcMaterials(bed);
@@ -1556,7 +1566,7 @@ function generateShoppingHTML() {
 
   // Collect every cut piece needed across raised beds only (ground areas need no lumber)
   const pieces = [];
-  beds.filter(b => b.type === 'raised').forEach(bed => {
+  beds.filter(b => b.type !== 'ground' && b.type !== 'pot').forEach(bed => {
     const m = calcMaterials(bed);
     for (let r = 0; r < m.runs; r++) {
       pieces.push({ len: bed.h, label: `${bed.name} side`, bedName: bed.name, boardSize: m.boardSize });
