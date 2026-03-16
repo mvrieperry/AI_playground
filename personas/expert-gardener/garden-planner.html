@@ -352,6 +352,7 @@
       <div id="bedList"></div>
       <button class="btn btn-primary" onclick="addBed()" style="margin-top:6px">+ Add Bed</button>
       <button class="btn btn-secondary" onclick="addGroundArea()" style="margin-top:4px">🌍 Add Ground Area</button>
+      <button class="btn btn-secondary" onclick="addPot()" style="margin-top:4px">🪴 Add Pot</button>
     </div>
 
     <div class="section">
@@ -412,7 +413,7 @@
         <label>Name</label>
         <input type="text" id="propName" oninput="updateProp('name', this.value)">
       </div>
-      <div class="field-row">
+      <div class="field-row" id="sizeRow">
         <div class="field">
           <label>Width (ft)</label>
           <input type="number" id="propW" min="1" max="40" step="0.5" oninput="updateProp('w', +this.value)">
@@ -421,6 +422,16 @@
           <label>Length (ft)</label>
           <input type="number" id="propH" min="1" max="40" step="0.5" oninput="updateProp('h', +this.value)">
         </div>
+      </div>
+      <div class="field" id="potSection">
+        <label>Diameter</label>
+        <select id="propDiam" onchange="updatePotDiam(+this.value)">
+          <option value="1">1 ft (12")</option>
+          <option value="1.5">1.5 ft (18")</option>
+          <option value="2">2 ft (24")</option>
+          <option value="2.5">2.5 ft (30")</option>
+          <option value="3">3 ft (36")</option>
+        </select>
       </div>
       <div class="field" id="depthSection">
         <label>Depth</label>
@@ -641,7 +652,40 @@ function drawBed(b) {
   ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
   ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
 
+  const isPot    = b.type === 'pot';
   const isGround = b.type === 'ground';
+
+  if (isPot) {
+    const r  = ft(b.diam) / 2;
+    const cx = x + r, cy = y + r;
+    // Shadow
+    ctx.shadowColor = sel ? 'rgba(255,159,10,0.4)' : 'rgba(0,0,0,0.18)';
+    ctx.shadowBlur = sel ? 12 : 5;
+    ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2;
+    ctx.fillStyle = b.color;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+    ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+    // Inner rim ring
+    ctx.beginPath(); ctx.arc(cx, cy, r * 0.82, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 2; ctx.stroke();
+    // Selection ring
+    if (sel) {
+      ctx.beginPath(); ctx.arc(cx, cy, r + 3, 0, Math.PI*2);
+      ctx.strokeStyle = '#ff9f0a'; ctx.lineWidth = 3; ctx.stroke();
+    }
+    // Labels
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `bold ${clamp(9, 12, r / 2)}px sans-serif`;
+    ctx.fillText(b.name, cx, cy - r * 0.18);
+    ctx.font = `${clamp(8, 10, r / 3)}px sans-serif`;
+    ctx.globalAlpha = 0.75;
+    ctx.fillText(`${b.diam * 12}"`, cx, cy + r * 0.32);
+    ctx.globalAlpha = 1;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    return;
+  }
 
   if (isGround) {
     // Dashed border for ground areas
@@ -674,7 +718,7 @@ function drawBed(b) {
   // Sub-label: "in-ground" for ground areas, dimensions for raised beds
   ctx.font = `${clamp(9, 11, w/6)}px sans-serif`;
   ctx.globalAlpha = 0.75;
-  ctx.fillText(isGround ? 'in-ground' : `${b.w} × ${b.h} ft`, x + w/2, y + 22);
+  ctx.fillText(isGround ? 'in-ground' : isPot ? `${b.diam*12}"` : `${b.w} × ${b.h} ft`, x + w/2, y + 22);
   ctx.globalAlpha = 1;
 
   // Plants
@@ -805,22 +849,27 @@ function syncPanel() {
   const isBed = isBedSelected();
 
   const isGround = isBed && item.type === 'ground';
+  const isPot    = isBed && item.type === 'pot';
   document.getElementById('panelTitle').textContent =
-    isGround ? '🌍 Ground Area' : isBed ? '🌿 Bed Details' : '⬛ Obstacle Details';
+    isPot ? '🪴 Pot' : isGround ? '🌍 Ground Area' : isBed ? '🌿 Bed Details' : '⬛ Obstacle Details';
   document.getElementById('propName').value = item.name;
-  document.getElementById('propW').value    = item.w;
-  document.getElementById('propH').value    = item.h;
   document.getElementById('propX').value    = item.x;
   document.getElementById('propY').value    = item.y;
+  if (!isPot) {
+    document.getElementById('propW').value = item.w;
+    document.getElementById('propH').value = item.h;
+  }
 
+  document.getElementById('sizeRow').style.display     = isPot ? 'none' : '';
+  document.getElementById('potSection').style.display  = isPot ? '' : 'none';
   document.getElementById('plantsSection').style.display = isBed ? '' : 'none';
   document.getElementById('notesSection').style.display  = isBed ? '' : 'none';
-  // Hide depth selector for ground areas (no raised structure)
-  document.getElementById('depthSection').style.display  = (isBed && !isGround) ? '' : 'none';
+  document.getElementById('depthSection').style.display  = (isBed && !isGround && !isPot) ? '' : 'none';
 
   if (isBed) {
     document.getElementById('propNotes').value = item.notes || '';
-    if (!isGround) document.getElementById('propDepth').value = item.depthIn || 12;
+    if (!isGround && !isPot) document.getElementById('propDepth').value = item.depthIn || 12;
+    if (isPot) document.getElementById('propDiam').value = item.diam || 1;
     renderPlantTags(item);
   }
 }
@@ -879,6 +928,19 @@ function addGroundArea() {
   select(id, 'bed'); renderLists(); draw();
 }
 
+function addPot() {
+  const id = 'pot' + nextId++;
+  beds.push({ id, name:'Pot', x:2, y:2, diam:1, w:1, h:1, color:'#c1440e', type:'pot', plants:[], notes:'' });
+  select(id, 'bed'); renderLists(); draw();
+}
+
+function updatePotDiam(val) {
+  const bed = beds.find(b => b.id === selectedId);
+  if (!bed || bed.type !== 'pot') return;
+  bed.diam = val; bed.w = val; bed.h = val;
+  draw(); renderLists();
+}
+
 function addObstacle() {
   const name = prompt('Name this obstacle (e.g. 🌳 Tree, 🚪 Door, 🪑 Furniture):', '⬛ Obstacle');
   if (!name) return;
@@ -932,7 +994,7 @@ function renderLists() {
           <div class="color-dot" style="background:${b.color}"></div>
           <span class="list-item-name">${b.name}</span>
         </div>
-        <span class="list-item-sub">${b.w}×${b.h} ft</span>
+        <span class="list-item-sub">${b.type === 'pot' ? `${b.diam * 12}" pot` : b.type === 'ground' ? `${b.w}×${b.h} ft · in-ground` : `${b.w}×${b.h} ft`}</span>
       </div>
       <div class="list-item-sub" style="margin-top:3px">${(b.plants||[]).join(', ') || '—'}</div>
     `;
@@ -1143,8 +1205,8 @@ function calcMaterials(bed) {
 
 function generateBuildHTML() {
   let grandTotal = 0;
-  const raisedBeds  = beds.filter(b => b.type !== 'ground');
-  const groundAreas = beds.filter(b => b.type === 'ground');
+  const raisedBeds  = beds.filter(b => b.type === 'raised');
+  const nonRaised   = beds.filter(b => b.type !== 'raised');
 
   const bedSections = raisedBeds.map(bed => {
     const m = calcMaterials(bed);
@@ -1222,8 +1284,8 @@ function generateBuildHTML() {
   }).join('');
 
   const totalSqft = raisedBeds.reduce((s, b) => s + b.w * b.h, 0);
-  const groundNote = groundAreas.length
-    ? `<p style="font-size:12px;color:#666;margin-top:8px">🌍 ${groundAreas.length} ground area${groundAreas.length > 1 ? 's' : ''} not shown here — no lumber needed. See Plant Organizer for planting details.</p>`
+  const groundNote = nonRaised.length
+    ? `<p style="font-size:12px;color:#666;margin-top:8px">🌍 ${nonRaised.length} ground area${nonRaised.length > 1 ? 's' : ''}/pot${nonRaised.length > 1 ? 's' : ''} not shown here — no lumber needed. See Plant Organizer for planting details.</p>`
     : '';
   const summary = `
   <div class="report-summary">
@@ -1422,6 +1484,7 @@ function generatePlantsHTML() {
 
     // Grid (interactive)
     const isGround = bed.type === 'ground';
+    const isPot    = bed.type === 'pot';
 
     // Per-plant detail rows
     const plantRows = plants.map(pName => {
@@ -1441,20 +1504,20 @@ function generatePlantsHTML() {
           <div class="plant-meta">
             <span class="pill">📐 ${pd.sqft >= 1 ? pd.sqft + ' sq ft/plant' : perSqft + '/sq ft'}</span>
             <span class="pill">↔ ${pd.spacing}" apart</span>
-            ${!isGround ? `<span class="pill">⬇ ${pd.depthIn}" soil</span>` : ''}
+            ${(!isGround && !isPot) ? `<span class="pill">⬇ ${pd.depthIn}" soil</span>` : ''}
             <span class="pill">☀ ${pd.sun}</span>
             <span class="pill">💧 ${pd.water}</span>
             ${trellisTag}
           </div>
           ${(cTags || aTags) ? `<div class="plant-meta">${cTags}${aTags}</div>` : ''}
-          <div class="plant-notes">${countLabel} in this ${sqftTotal} sq ft ${isGround ? 'ground area' : 'bed'}. ${pd.notes}</div>
+          <div class="plant-notes">${countLabel} in this ${sqftTotal} sq ft ${isPot ? 'pot' : isGround ? 'ground area' : 'bed'}. ${pd.notes}</div>
         </div>
       </div>`;
     }).join('');
 
     return `<div class="report-bed">
       <div class="report-bed-header">
-        <h3>${bed.name} ${isGround ? '<span style="font-size:11px;font-weight:normal;background:rgba(58,125,68,0.2);border:1px solid #3a7d44;border-radius:4px;padding:1px 6px;vertical-align:middle">🌍 in-ground</span>' : ''}</h3>
+        <h3>${bed.name} ${isPot ? '<span style="font-size:11px;font-weight:normal;background:rgba(193,68,14,0.15);border:1px solid #c1440e;border-radius:4px;padding:1px 6px;vertical-align:middle">🪴 pot</span>' : isGround ? '<span style="font-size:11px;font-weight:normal;background:rgba(58,125,68,0.2);border:1px solid #3a7d44;border-radius:4px;padding:1px 6px;vertical-align:middle">🌍 in-ground</span>' : ''}</h3>
         <span>${bed.w} ft × ${bed.h} ft · ${sqftTotal} sq ft</span>
       </div>
       <div class="report-bed-body">
@@ -1491,7 +1554,7 @@ function generateShoppingHTML() {
 
   // Collect every cut piece needed across raised beds only (ground areas need no lumber)
   const pieces = [];
-  beds.filter(b => b.type !== 'ground').forEach(bed => {
+  beds.filter(b => b.type === 'raised').forEach(bed => {
     const m = calcMaterials(bed);
     for (let r = 0; r < m.runs; r++) {
       pieces.push({ len: bed.h, label: `${bed.name} side`, bedName: bed.name, boardSize: m.boardSize });
